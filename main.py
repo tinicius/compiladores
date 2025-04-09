@@ -2,6 +2,11 @@ from enum import Enum
 
 class TokenType(Enum):
     VARIABLE = 1
+    RESERVED_WORD_PROGRAM = 2
+    STRING = 3
+    OPEN_PARENTHESES = 4
+    CLOSE_PARENTHESES = 5
+    SEMICOLON = 6
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -10,11 +15,12 @@ class Token:
         self.line = line
         self.column = column
 
-def tokenize() -> list[Token]:
+def tokenize(filename: str) -> list[Token]:
     tokens = []
     
-    tokens.append(Token(TokenType.VARIABLE, "x", 1, 1))
+    with open(filename, 'r') as file:
+
+        for line in file:
+            print(line.strip()) 
 
     return tokens
-
-print(tokenize())
