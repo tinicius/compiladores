@@ -3,10 +3,13 @@ from enum import Enum
 class TokenType(Enum):
     VARIABLE = 1
     RESERVED_WORD_PROGRAM = 2
+    RESERVED_WORD_BEGIN = 3
+    RESERVED_WORD_END = 4
     STRING = 3
     OPEN_PARENTHESES = 4
     CLOSE_PARENTHESES = 5
     SEMICOLON = 6
+    DOT = 7
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -21,6 +24,11 @@ def tokenize(filename: str) -> list[Token]:
     with open(filename, 'r') as file:
 
         for line in file:
-            print(line.strip()) 
+            print(line.strip().split(" "))
+
+
+
 
     return tokens
+
+tokenize("example.pas")
