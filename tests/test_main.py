@@ -2,9 +2,9 @@ from typing import List
 from src.main import Lexical, Token, TokenType
 
 def test_reserved_word_token():
-    file = "./examples/reserved_words.pas"
+    filename = "./examples/reserved_words.pas"
 
-    lexer = Lexical(file)
+    lexer = Lexical(filename)
 
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),

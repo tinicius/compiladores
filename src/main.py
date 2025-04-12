@@ -70,8 +70,8 @@ token_map: dict[str, TokenType] = {
 class Lexical:
     def __init__(self, filename: str):
         try:
-            with open(filename, 'r') as file:
-                self.input = list(file)
+            with open(filename, 'r') as file_handle:
+                self.input = list(file_handle)
         except FileNotFoundError:
             raise Exception(f"Error: The file {filename} does not exist.")
 
@@ -98,7 +98,7 @@ class Lexical:
         state = 0
         start_column = self.column
 
-        aux = ""
+        token_buffer = ""
 
         c = ""
 
@@ -113,13 +113,13 @@ class Lexical:
             match state:
                 case 0:
                     if c.isalpha():
-                        aux += c
+                        token_buffer += c
                         state = 1
                     else:
                         break
                 case 1:
                     if c.isalpha() or c.isdigit():
-                        aux += c
+                        token_buffer += c
                         state = 1
                     else:
                         state = 2
@@ -127,10 +127,10 @@ class Lexical:
         token = None
 
         if state == 2:
-            if (token_map.get(aux) is not None):
-                token = Token(token_map[aux], aux, self.line, start_column)
+            if (token_map.get(token_buffer) is not None):
+                token = Token(token_map[token_buffer], token_buffer, self.line, start_column)
             else:
-                token = Token(TokenType.VARIABLE, aux, self.line, start_column)
+                token = Token(TokenType.VARIABLE, token_buffer, self.line, start_column)
             
         if c == '\n':
             self.line += 1
