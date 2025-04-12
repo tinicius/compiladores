@@ -1,6 +1,4 @@
 from enum import Enum, auto
-from pathlib import Path
-
 
 class TokenType(Enum):
     VARIABLE = auto()
@@ -29,6 +27,7 @@ class TokenType(Enum):
     CLOSE_PARENTHESES = auto()
     SEMICOLON = auto()
     DOT = auto()
+    EOF = auto()
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -68,63 +67,96 @@ token_map: dict[str, TokenType] = {
     "readln": TokenType.RESERVED_WORD_READLN,
 }
 
-def get_tokens_from_line(line: str, line_i: int) -> list[Token]:
-    tokens = []
+class Lexical:
+    def __init__(self, filename: str):
+        try:
+            with open(filename, 'r') as file:
+                self.input = list(file)
+        except FileNotFoundError:
+            raise Exception(f"Error: The file {filename} does not exist.")
 
-    idx = 0
-    start_idx = 0
+        self.line = 0
+        self.column = 0
 
-    state = 0
-
-    aux: str = ""
-
-    while idx < len(line):
-        match state:
-            case 0:
-                if line[idx].isalpha():
-                    aux += line[idx]
-                    idx += 1
-                    state = 1
-                else:
-                    idx += 1
-                    state = 0
-                    start_idx = idx
-            case 1:
-                if line[idx].isalpha() or line[idx].isdigit():
-                    aux += line[idx]
-                    idx += 1
-                    state = 1
-                else:
-                    idx += 1
-                    if (token_map.get(aux) is not None):
-                        tokens.append(Token(token_map[aux], aux, line_i, start_idx))
-                    else:
-                        tokens.append(Token(TokenType.VARIABLE, aux, line_i, start_idx))
-                    
-                    state = 0
-                    start_idx = idx
-                    aux = ""
-                        
-    return tokens
-
-def print_token(token: Token):
-    print(f"({token.token_type}, {token.lexeme}, {token.line}, {token.column})")
-
-def tokenize(filename: str) -> list[Token]:
-    tokens = []
+        self.idx = 0
     
-    try:
-        with open(filename, 'r') as file:
+    def get_char(self) -> str:
+        try:
 
-            for i, line in enumerate(file):
+            if self.line >= len(self.input):
+                return ''
 
-                line_tokens = get_tokens_from_line(line, i)
-                for token in line_tokens:
-                    tokens.append(token)
-    except FileNotFoundError:
-        print(f"Error: The file {filename} does not exist.")
+            c = self.input[self.line][self.idx]
+            self.idx += 1
 
-    for token in tokens:
-        print_token(token)
+            return c
+        except:
+            raise Exception("Error: Unable to read character from file.")
+        
+    def nextToken(self) -> Token:
 
-    return tokens
+        state = 0
+        start_column = self.column
+
+        aux = ""
+
+        c = ""
+
+        while state != 2:
+            c = self.get_char()
+            
+            self.column += 1
+
+            if c == '':
+                return Token(TokenType.EOF, "", self.line, 0)
+        
+            match state:
+                case 0:
+                    if c.isalpha():
+                        aux += c
+                        state = 1
+                    else:
+                        break
+                case 1:
+                    if c.isalpha() or c.isdigit():
+                        aux += c
+                        state = 1
+                    else:
+                        state = 2
+                        
+        token = None
+
+        if state == 2:
+            if (token_map.get(aux) is not None):
+                token = Token(token_map[aux], aux, self.line, start_column)
+            else:
+                token = Token(TokenType.VARIABLE, aux, self.line, start_column)
+            
+        if c == '\n':
+            self.line += 1
+            self.idx = 0
+            self.column = 0
+
+        return token
+    
+    def print_token(self, token: Token):
+        print(f"({token.token_type}, {token.lexeme}, {token.line}, {token.column})")
+
+    def tokenize(self) -> list[Token]:
+        tokens = []
+    
+        while True:
+            token = self.nextToken()
+
+            if token is None:
+                continue
+
+            if token.token_type == TokenType.EOF:
+                break
+
+            tokens.append(token)
+
+        for token in tokens:
+            self.print_token(token)
+
+        return tokens
