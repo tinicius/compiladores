@@ -28,6 +28,9 @@ class TokenType(Enum):
     SEMICOLON = auto()
     DOT = auto()
     EOF = auto()
+    
+class StringError(Exception):
+    pass
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -85,6 +88,9 @@ class Lexical:
 
             if self.line >= len(self.input):
                 return ''
+        
+            if self.idx >= len(self.input[self.line]):
+                return ''
 
             c = self.input[self.line][self.idx]
             self.idx += 1
@@ -108,6 +114,14 @@ class Lexical:
             self.column += 1
 
             if c == '':
+
+                if state == 1:
+                    state = 2
+                    break
+                
+                if state == 6:
+                    raise StringError(f"Invalid string at: {self.line}, {self.column}")
+                
                 return Token(TokenType.EOF, "", self.line, 0)
         
             match state:
@@ -120,6 +134,7 @@ class Lexical:
                         state = 6
                     else:
                         break
+
                 case 1:
                     if c.isalpha() or c.isdigit():
                         token_buffer += c
@@ -133,13 +148,24 @@ class Lexical:
                     elif c == '"':
                         token_buffer += c
                         state = 14
+                    elif c == '\n':
+                        raise StringError(f"Invalid string at: {self.line}, {self.column}")
                     else:
                         token_buffer += c
                         state = 6
 
                 case 13:
-                    if c == "n":
+                    if c == 'n':
                         token_buffer += "\n"
+                        state = 6
+                    elif c == 'r':
+                        token_buffer += '\r'
+                        state = 6
+                    elif c == 't':
+                        token_buffer += '\t'
+                        state = 6
+                    elif c == '0':
+                        token_buffer += '\0'
                         state = 6
                     elif c == '"':
                         token_buffer += c

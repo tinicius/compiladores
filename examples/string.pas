@@ -2,5 +2,8 @@ program HelloWorld
 
 begin
   "Hello World!"
-  "Linha1\nLinha2"
+  "a\nb"
+  "a\rb"
+  "a\tb"
+  "a\0b"
 end
