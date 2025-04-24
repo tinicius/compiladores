@@ -26,8 +26,32 @@ class TokenType(Enum):
     OPEN_PARENTHESES = auto()
     CLOSE_PARENTHESES = auto()
     SEMICOLON = auto()
+    COLON = auto()
+    COMMA = auto()
     DOT = auto()
     EOF = auto()
+    # operadores aritméticos
+    OPERATOR_PLUS = auto()
+    OPERATOR_MINUS = auto()
+    OPERATOR_MULTIPLY = auto()
+    OPERATOR_DIVIDE = auto()
+    OPERATOR_MOD = auto()
+    OPERATOR_DIV = auto()
+    # operadores lógicos
+    OPERATOR_AND = auto()
+    OPERATOR_OR = auto()
+    OPERATOR_NOT = auto()
+    # operadores relacionais
+    OPERATOR_EQUAL = auto()
+    OPERATOR_NOT_EQUAL = auto()
+    OPERATOR_LESS = auto()
+    OPERATOR_LESS_EQUAL = auto()
+    OPERATOR_GREATER = auto()
+    OPERATOR_GREATER_EQUAL = auto()
+    # operador de atribuição
+    OPERATOR_ASSIGN = auto()
+    
+
     
 class StringError(Exception):
     pass
@@ -68,6 +92,11 @@ token_map: dict[str, TokenType] = {
     "writeln": TokenType.RESERVED_WORD_WRITELN,
     "read": TokenType.RESERVED_WORD_READ,
     "readln": TokenType.RESERVED_WORD_READLN,
+    "mod": TokenType.OPERATOR_MOD,
+    "div": TokenType.OPERATOR_DIV,
+    "and": TokenType.OPERATOR_AND,
+    "or": TokenType.OPERATOR_OR,
+    "not": TokenType.OPERATOR_NOT
 }
 
 class Lexical:
@@ -132,6 +161,95 @@ class Lexical:
                     elif c == '"':
                         token_buffer += c
                         state = 6
+                    elif c in ['+','-','*','/']:
+                        token_buffer += c
+                        if c == '+':
+                            return Token(TokenType.OPERATOR_PLUS, token_buffer, self.line, start_column)
+                        elif c == '-':
+                            return Token(TokenType.OPERATOR_MINUS, token_buffer, self.line, start_column)
+                        elif c == '*':
+                            return Token(TokenType.OPERATOR_MULTIPLY, token_buffer, self.line, start_column)
+                        elif c == '/':
+                            return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
+                    elif c == '=':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char == '=':
+                            token_buffer += next_char
+                            self.column += 1
+                            return Token(TokenType.OPERATOR_EQUAL, token_buffer, self.line, start_column)
+                        else:
+                            if next_char != '':
+                                self.idx -= 1                
+                            return Token(TokenType.OPERATOR_EQUAL, token_buffer, self.line, start_column)
+                    elif c == '<':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char == '>':
+                            token_buffer += next_char
+                            self.column += 1
+                            return Token(TokenType.OPERATOR_NOT_EQUAL,token_buffer, self.line, start_column)
+                        elif next_char == '=':
+                            token_buffer += next_char
+                            self.column +=1
+                            return Token(TokenType.OPERATOR_LESS_EQUAL, token_buffer, self.line, start_column)
+                        else:
+                            if next_char != '':
+                                self.idx -= 1
+                            return Token(TokenType.OPERATOR_LESS, token_buffer, self.line, start_column)
+                    elif c == '>':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char == '=':
+                            token_buffer += next_char
+                            self.column += 1
+                            return Token(TokenType.OPERATOR_GREATER_EQUAL, token_buffer, self.line, start_column)
+                        else:
+                            if next_char != '':
+                                self.idx -= 1
+                            return Token(TokenType.OPERATOR_GREATER, token_buffer, self.line, start_column)
+                    elif c == ':':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char == '=':
+                            token_buffer += next_char
+                            self.column += 1
+                            return Token(TokenType.OPERATOR_ASSIGN, token_buffer, self.line, start_column)
+                        else:
+                            if next_char != '':
+                                self.idx -= 1
+                            return Token(TokenType.COLON, token_buffer, self.line, start_column)
+                    elif c == ';':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char != '':
+                            self.idx -= 1
+                        return Token(TokenType.SEMICOLON, token_buffer, self.line, start_column)
+                    elif c == ',':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char != '':
+                            self.idx -= 1
+                        return Token(TokenType.COMMA, token_buffer, self.line, start_column)
+                    elif c == '.':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char != '':
+                            self.idx -= 1
+                        return Token(TokenType.DOT, token_buffer, self.line, start_column)
+                    elif c == '(':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char != '':
+                            self.idx -= 1
+                        return Token(TokenType.OPEN_PARENTHESES, token_buffer, self.line, start_column)
+                    elif c == ')':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char != '':
+                            self.idx -= 1
+                        return Token(TokenType.CLOSE_PARENTHESES, token_buffer, self.line, start_column)
+
                     else:
                         break
 
