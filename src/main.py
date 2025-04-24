@@ -28,6 +28,9 @@ class TokenType(Enum):
     SEMICOLON = auto()
     DOT = auto()
     EOF = auto()
+    
+class StringError(Exception):
+    pass
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -85,6 +88,9 @@ class Lexical:
 
             if self.line >= len(self.input):
                 return ''
+        
+            if self.idx >= len(self.input[self.line]):
+                return ''
 
             c = self.input[self.line][self.idx]
             self.idx += 1
@@ -102,12 +108,20 @@ class Lexical:
 
         c = ""
 
-        while state != 2:
+        while state != 2 and state != 14:
             c = self.get_char()
             
             self.column += 1
 
             if c == '':
+
+                if state == 1:
+                    state = 2
+                    break
+                
+                if state == 6:
+                    raise StringError(f"Invalid string at: {self.line}, {self.column}")
+                
                 return Token(TokenType.EOF, "", self.line, 0)
         
             match state:
@@ -115,14 +129,51 @@ class Lexical:
                     if c.isalpha():
                         token_buffer += c
                         state = 1
+                    elif c == '"':
+                        token_buffer += c
+                        state = 6
                     else:
                         break
+
                 case 1:
                     if c.isalpha() or c.isdigit():
                         token_buffer += c
                         state = 1
                     else:
                         state = 2
+
+                case 6:
+                    if c == "\\":
+                        state = 13
+                    elif c == '"':
+                        token_buffer += c
+                        state = 14
+                    elif c == '\n':
+                        raise StringError(f"Invalid string at: {self.line}, {self.column}")
+                    else:
+                        token_buffer += c
+                        state = 6
+
+                case 13:
+                    if c == 'n':
+                        token_buffer += "\n"
+                        state = 6
+                    elif c == 'r':
+                        token_buffer += '\r'
+                        state = 6
+                    elif c == 't':
+                        token_buffer += '\t'
+                        state = 6
+                    elif c == '0':
+                        token_buffer += '\0'
+                        state = 6
+                    elif c == '"':
+                        token_buffer += c
+                        state = 14
+                    else:
+                        token_buffer += c
+                        state = 6
+                    
                         
         token = None
 
@@ -131,7 +182,10 @@ class Lexical:
                 token = Token(token_map[token_buffer], token_buffer, self.line, start_column)
             else:
                 token = Token(TokenType.VARIABLE, token_buffer, self.line, start_column)
-            
+        
+        if state == 14:
+            token = Token(TokenType.STRING, token_buffer, self.line, start_column)
+
         if c == '\n':
             self.line += 1
             self.idx = 0
