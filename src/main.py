@@ -32,6 +32,9 @@ class TokenType(Enum):
     HEXADECIMAL = auto()
     FLOAT = auto()
     DECIMAL = auto()
+    
+class StringError(Exception):
+    pass
 
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
@@ -89,6 +92,9 @@ class Lexical:
 
             if self.line >= len(self.input):
                 return ''
+        
+            if self.idx >= len(self.input[self.line]):
+                return ''
 
             c = self.input[self.line][self.idx]
             self.idx += 1
@@ -104,11 +110,19 @@ class Lexical:
         token_buffer = ""
         c = ""
 
-        while state != 2:
+        while state != 2 and state != 14:
             c = self.get_char()
             self.column += 1
 
             if c == '':
+
+                if state == 1:
+                    state = 2
+                    break
+                
+                if state == 6:
+                    raise StringError(f"Invalid string at: {self.line}, {self.column}")
+                
                 return Token(TokenType.EOF, "", self.line, 0)
         
             match state:
@@ -122,8 +136,12 @@ class Lexical:
                     elif c.isdigit():
                         token_buffer += c
                         state = 10 
-                    else:   
+                    elif c == '"':
+                        token_buffer += c
+                        state = 6
+                    else:
                         break
+
                 case 1:
                     if c.isalpha() or c.isdigit():
                         token_buffer += c
@@ -186,6 +204,40 @@ class Lexical:
                     else:
                         raise Exception("Error: Invalid float number at line" + str(self.line) + " column " + str(self.column) + ".")
 
+
+                case 6:
+                    if c == "\\":
+                        state = 13
+                    elif c == '"':
+                        token_buffer += c
+                        state = 14
+                    elif c == '\n':
+                        raise StringError(f"Invalid string at: {self.line}, {self.column}")
+                    else:
+                        token_buffer += c
+                        state = 6
+
+                case 13:
+                    if c == 'n':
+                        token_buffer += "\n"
+                        state = 6
+                    elif c == 'r':
+                        token_buffer += '\r'
+                        state = 6
+                    elif c == 't':
+                        token_buffer += '\t'
+                        state = 6
+                    elif c == '0':
+                        token_buffer += '\0'
+                        state = 6
+                    elif c == '"':
+                        token_buffer += c
+                        state = 14
+                    else:
+                        token_buffer += c
+                        state = 6
+                    
+                        
         token = None
 
         if state == 2:
@@ -201,6 +253,9 @@ class Lexical:
             token = Token(TokenType.DECIMAL, token_buffer, self.line, start_column)
         elif state == 11:
             token = Token(TokenType.FLOAT, token_buffer, self.line, start_column)  
+        
+        if state == 14:
+            token = Token(TokenType.STRING, token_buffer, self.line, start_column)
 
         if c == '\n':
             self.line += 1
@@ -230,7 +285,4 @@ class Lexical:
             self.print_token(token)
 
         return tokens
-    
 
-lexical = Lexical("./examples/numbers.pas")    
-lexical.tokenize()
