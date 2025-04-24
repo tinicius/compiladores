@@ -30,6 +30,10 @@ class TokenType(Enum):
     COMMA = auto()
     DOT = auto()
     EOF = auto()
+    OCTAL = auto()
+    HEXADECIMAL = auto()
+    FLOAT = auto()
+    DECIMAL = auto()
     # operadores aritméticos
     OPERATOR_PLUS = auto()
     OPERATOR_MINUS = auto()
