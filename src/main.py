@@ -34,6 +34,8 @@ class TokenType(Enum):
     HEXADECIMAL = auto()
     FLOAT = auto()
     DECIMAL = auto()
+    LINE_COMMENT = auto()
+    BLOCK_COMMENT = auto()
     # operadores aritméticos
     OPERATOR_PLUS = auto()
     OPERATOR_MINUS = auto()
@@ -177,7 +179,18 @@ class Lexical:
                         elif c == '*':
                             return Token(TokenType.OPERATOR_MULTIPLY, token_buffer, self.line, start_column)
                         elif c == '/':
-                            return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
+                            next_char = self.get_char()
+                            if next_char == '/':
+                                token_buffer += next_char
+                                comment_token = Token(TokenType.LINE_COMMENT, token_buffer, self.line, start_column)
+                                self.line += 1
+                                self.idx = 0
+                                self.column = 0
+                                return comment_token                            
+                            else:
+                                if next_char != '':
+                                    self.idx -= 1
+                                return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
                     elif c == '=':
                         token_buffer += c
                         next_char = self.get_char()
