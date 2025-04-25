@@ -3,3 +3,7 @@ and
 or
 not
 //();:,.<>><<=>==+-*/mod div
+string
+
+
+{comentário}
