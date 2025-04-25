@@ -269,7 +269,26 @@ class Lexical:
                         if next_char != '':
                             self.idx -= 1
                         return Token(TokenType.CLOSE_PARENTHESES, token_buffer, self.line, start_column)
-
+                    elif c == '{':
+                        token_buffer += c
+                        start_line = self.line
+                        start_column = self.column - 1 
+                        while True:
+                            next_char = self.get_char()
+                            if next_char == '':
+                                raise Exception("Error: Unclosed block comment starting at line " + str(self.line) + " column " + str(self.column) + ".")
+                            token_buffer += next_char
+                            if next_char == '}':
+                                break
+                            if next_char == '\n':
+                                self.line += 1
+                                self.idx = 0
+                                self.column = 0
+                            else:
+                                self.column += 1
+                        return Token(TokenType.BLOCK_COMMENT, token_buffer, self.line, start_column)
+                    elif c == '}':
+                        raise Exception("Error: Unmatched closing brace at line " + str(self.line) + " column "+ str(self.column))
                     else:
                         break
 
