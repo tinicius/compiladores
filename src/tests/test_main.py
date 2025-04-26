@@ -1,5 +1,5 @@
 from typing import List
-from src.main import Lexical, Token, TokenType, StringError, InvalidNumberError
+from lexical.lexical import Lexical, Token, TokenType, StringError, InvalidNumberError
 import pytest
 
 def test_reserved_word_token():
