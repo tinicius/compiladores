@@ -1,5 +1,5 @@
 from typing import List
-from src.main import Lexical, Token, TokenType, StringError
+from src.main import Lexical, Token, TokenType, StringError, InvalidNumberError
 import pytest
 
 def test_reserved_word_token():
@@ -87,3 +87,16 @@ def test_numbers():
     ]
     
     assert lexer.tokenize() == expected
+    
+        
+@pytest.mark.parametrize("filename", [
+    "./examples/number_error1.pas",
+    "./examples/number_error2.pas",
+    "./examples/number_error3.pas",
+    "./examples/number_error4.pas",
+])
+def test_invalid_number_errors(filename):
+    lexer = Lexical(filename)
+    
+    with pytest.raises(InvalidNumberError) as excinfo:
+        lexer.tokenize()

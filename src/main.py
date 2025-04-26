@@ -62,6 +62,9 @@ class TokenType(Enum):
 class StringError(Exception):
     pass
 
+class InvalidNumberError(Exception):
+    pass
+
 class Token:
     def __init__(self, token_type: TokenType, lexeme: str, line: int, column: int):
         self.token_type = token_type
@@ -307,7 +310,9 @@ class Lexical:
                         state = 8
                     elif c == '.':
                         token_buffer += c
-                        state = 11    
+                        state = 11
+                    else:
+                        raise InvalidNumberError("Error: Invalid number at line " + str(self.line) + " column " + str(self.column) + ".")
                 case 7:
                     if c == '.':
                         token_buffer += c
@@ -315,7 +320,7 @@ class Lexical:
                     elif c in '01234567':
                         token_buffer += c
                         state = 7
-                    elif c == '\n' or ' ':
+                    elif c in ['\n', ' ']:
                         break       
                     else:
                         raise Exception("Error: Invalid octal number at line" + str(self.line) + " column " + str(self.column) + ".")
@@ -323,11 +328,13 @@ class Lexical:
                     if c in '0123456789abcdefABCDEF':
                         token_buffer += c
                         state = 9
+                    else:
+                        raise InvalidNumberError("Error: Invalid hexadecimal number at line" + str(self.line) + " column " + str(self.column) + ".")
                 case 9:
                     if c in '0123456789abcdefABCDEF':
                         token_buffer += c
                         state = 9    
-                    elif c == '\n' or ' ':
+                    elif c in ['\n', ' ']:
                         break
                     else:
                         raise Exception("Error: Invalid hexadecimal number at line" + str(self.line) + " column " + str(self.column) + ".")
@@ -338,10 +345,10 @@ class Lexical:
                     elif c == '.':
                         token_buffer += c
                         state = 11
-                    elif c == '\n' or ' ':    
-                        break    
+                    elif c in ['\n', ' ']: 
+                        break
                     else:
-                        raise Exception("Error: Invalid decimal number at line" + str(self.line) + " column " + str(self.column) + ".")
+                        raise InvalidNumberError("Error: Invalid decimal number at line" + str(self.line) + " column " + str(self.column) + ".")
                 case 11:
                     if c.isdigit():
                         token_buffer += c
@@ -352,7 +359,7 @@ class Lexical:
                     elif c == '\n':
                         break
                     else:
-                        raise Exception("Error: Invalid float number at line" + str(self.line) + " column " + str(self.column) + ".")
+                        raise InvalidNumberError("Error: Invalid float number at line" + str(self.line) + " column " + str(self.column) + ".")
 
 
                 case 6:
