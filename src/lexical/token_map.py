@@ -23,7 +23,7 @@ token_map: dict[str, TokenType] = {
     "read": TokenType.RESERVED_WORD_READ,
     "readln": TokenType.RESERVED_WORD_READLN,
     "mod": TokenType.OPERATOR_MOD,
-    "div": TokenType.OPERATOR_DIV,
+    "div": TokenType.OPERATOR_INTEGER_DIVIDER,
     "and": TokenType.OPERATOR_AND,
     "or": TokenType.OPERATOR_OR,
     "not": TokenType.OPERATOR_NOT

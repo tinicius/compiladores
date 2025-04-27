@@ -42,7 +42,7 @@ class TokenType(Enum):
     OPERATOR_MULTIPLY = auto()
     OPERATOR_DIVIDE = auto()
     OPERATOR_MOD = auto()
-    OPERATOR_DIV = auto()
+    OPERATOR_INTEGER_DIVIDER = auto()
     # operadores lógicos
     OPERATOR_AND = auto()
     OPERATOR_OR = auto()
