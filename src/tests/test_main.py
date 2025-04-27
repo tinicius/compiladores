@@ -100,3 +100,18 @@ def test_invalid_number_errors(filename):
     
     with pytest.raises(InvalidNumberError) as excinfo:
         lexer.tokenize()
+        
+        
+def test_equal():
+    filename = "./examples/equal.pas"
+    
+    lexer = Lexical(filename)
+    
+    expected: List[Token] = [
+        Token(TokenType.OPERATOR_EQUAL, "=", 0, 0),
+        Token(TokenType.OPERATOR_EQUAL, "==", 1, 0),
+        Token(TokenType.OPERATOR_EQUAL, "==", 2, 0),
+        Token(TokenType.OPERATOR_EQUAL, "=", 2, 2)
+    ]
+    
+    assert lexer.tokenize() == expected
