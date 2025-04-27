@@ -1,5 +1,5 @@
 import sys
-from lexical.lexical import Lexical
+from lib.lexical.lexical import Lexical
 
 def main():
     if len(sys.argv) < 2:
