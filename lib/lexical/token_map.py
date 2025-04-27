@@ -1,4 +1,4 @@
-from lexical.token_type import TokenType
+from lib.lexical.token_type import TokenType
 
 
 token_map: dict[str, TokenType] = {

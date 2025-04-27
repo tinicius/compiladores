@@ -1,5 +1,5 @@
 from typing import List
-from lexical.lexical import Lexical, Token, TokenType, StringError, InvalidNumberError
+from lib.lexical.lexical import Lexical, Token, TokenType, StringError, InvalidNumberError
 import pytest
 
 def tokens(filename: str, expected: List[Token]):
@@ -13,7 +13,7 @@ def tokens(filename: str, expected: List[Token]):
         assert token == expected[i], f"Expected: {lexer.print_token(expected[i])}\nGot: {lexer.print_token(token)}"
 
 def test_reserved_word_token():
-    filename = "./src/tests/files/reserved_words.pas"
+    filename = "./lib/tests/files/reserved_words.pas"
 
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
@@ -42,7 +42,7 @@ def test_reserved_word_token():
 
 
 def test_string_tokens():
-    filename = "./src/tests/files/string.pas"
+    filename = "./lib/tests/files/string.pas"
 
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
@@ -62,7 +62,7 @@ def test_string_tokens():
     
 
 def test_string_error():
-    filename = "./src/tests/files/string_error.pas"
+    filename = "./lib/tests/files/string_error.pas"
 
     lexer = Lexical(filename)
     
@@ -71,7 +71,7 @@ def test_string_error():
     
 
 def test_numbers():
-    filename = "./src/tests/files/numbers.pas"
+    filename = "./lib/tests/files/numbers.pas"
         
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
@@ -90,10 +90,10 @@ def test_numbers():
     
         
 @pytest.mark.parametrize("filename", [
-    "./src/tests/files/number_error1.pas",
-    "./src/tests/files/number_error2.pas",
-    "./src/tests/files/number_error3.pas",
-    "./src/tests/files/number_error4.pas",
+    "./lib/tests/files/number_error1.pas",
+    "./lib/tests/files/number_error2.pas",
+    "./lib/tests/files/number_error3.pas",
+    "./lib/tests/files/number_error4.pas",
 ])
 def test_invalid_number_errors(filename):
     lexer = Lexical(filename)
@@ -103,7 +103,7 @@ def test_invalid_number_errors(filename):
         
         
 def test_equal():
-    filename = "./src/tests/files/equal.pas"
+    filename = "./lib/tests/files/equal.pas"
         
     expected: List[Token] = [
         Token(TokenType.OPERATOR_EQUAL, "=", 0, 0),
@@ -116,7 +116,7 @@ def test_equal():
     
 
 def test_operators():
-    filename = "./src/tests/files/operators.pas"
+    filename = "./lib/tests/files/operators.pas"
         
     expected: List[Token] = [
         Token(TokenType.OPERATOR_PLUS, "+", 0, 0),
@@ -143,7 +143,7 @@ def test_operators():
     tokens(filename, expected)
     
 def test_symbols():
-    filename = "./src/tests/files/symbols.pas"
+    filename = "./lib/tests/files/symbols.pas"
         
     expected: List[Token] = [
         Token(TokenType.SEMICOLON, ";", 0, 0),

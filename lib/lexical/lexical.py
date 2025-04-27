@@ -1,7 +1,7 @@
-from lexical.token_type import TokenType
-from lexical.token import Token
-from lexical.errors import StringError, InvalidNumberError
-from lexical.token_map import token_map
+from lib.lexical.token_type import TokenType
+from lib.lexical.token import Token
+from lib.lexical.errors import StringError, InvalidNumberError
+from lib.lexical.token_map import token_map
 
 
 class Lexical:
