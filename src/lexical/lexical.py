@@ -334,8 +334,5 @@ class Lexical:
 
             tokens.append(token)
 
-        for token in tokens:
-            self.print_token(token)
-
         return tokens
 

@@ -2,44 +2,47 @@ from typing import List
 from lexical.lexical import Lexical, Token, TokenType, StringError, InvalidNumberError
 import pytest
 
+def tokens(filename: str, expected: List[Token]):
+    lexer = Lexical(filename)
+    
+    result = lexer.tokenize()
+    
+    assert len(expected) == len(result), f"Expected {len(expected)} tokens, got {len(result)}"
+    
+    for i, token in enumerate(result):
+        assert token == expected[i], f"Expected: {lexer.print_token(expected[i])}\nGot: {lexer.print_token(token)}"
+
 def test_reserved_word_token():
     filename = "./examples/reserved_words.pas"
 
-    lexer = Lexical(filename)
-
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
-        Token(TokenType.VARIABLE, "HelloWorld", 0, 8),
-        Token(TokenType.RESERVED_WORD_BEGIN, "begin", 2, 0),
-        Token(TokenType.RESERVED_WORD_VAR, "var", 3, 2),
-        Token(TokenType.RESERVED_WORD_INTEGER, "integer", 4, 2),
-        Token(TokenType.RESERVED_WORD_REAL, "real", 5, 2),
-        Token(TokenType.RESERVED_WORD_STRING, "string", 6, 2),
-        Token(TokenType.RESERVED_WORD_END, "end", 7, 2),
-        Token(TokenType.RESERVED_WORD_FOR, "for", 8, 2),
-        Token(TokenType.RESERVED_WORD_TO, "to", 9, 2),
-        Token(TokenType.RESERVED_WORD_WHILE, "while", 10, 2),
-        Token(TokenType.RESERVED_WORD_DO, "do", 11, 2),
-        Token(TokenType.RESERVED_WORD_BREAK, "break", 12, 2),
-        Token(TokenType.RESERVED_WORD_CONTINUE, "continue", 13, 2),
-        Token(TokenType.RESERVED_WORD_IF, "if", 14, 2),
-        Token(TokenType.RESERVED_WORD_ELSE, "else", 15, 2),
-        Token(TokenType.RESERVED_WORD_THEN, "then", 16, 2),
-        Token(TokenType.RESERVED_WORD_WRITE, "write", 17, 2),
-        Token(TokenType.RESERVED_WORD_WRITELN, "writeln", 18, 2),
-        Token(TokenType.RESERVED_WORD_READ, "read", 19, 2),
-        Token(TokenType.RESERVED_WORD_READLN, "readln", 20, 2),
-        Token(TokenType.RESERVED_WORD_END, "end", 21, 0),
+        Token(TokenType.RESERVED_WORD_VAR, "var", 1, 0),
+        Token(TokenType.RESERVED_WORD_INTEGER, "integer", 2, 0),
+        Token(TokenType.RESERVED_WORD_REAL, "real", 3, 0),
+        Token(TokenType.RESERVED_WORD_STRING, "string", 4, 0),
+        Token(TokenType.RESERVED_WORD_BEGIN, "begin", 5, 0),
+        Token(TokenType.RESERVED_WORD_END, "end", 6, 0),
+        Token(TokenType.RESERVED_WORD_FOR, "for", 7, 0),
+        Token(TokenType.RESERVED_WORD_TO, "to", 8, 0),
+        Token(TokenType.RESERVED_WORD_WHILE, "while", 9, 0),
+        Token(TokenType.RESERVED_WORD_DO, "do", 10, 0),
+        Token(TokenType.RESERVED_WORD_BREAK, "break", 11, 0),
+        Token(TokenType.RESERVED_WORD_CONTINUE, "continue", 12, 0),
+        Token(TokenType.RESERVED_WORD_IF, "if", 13, 0),
+        Token(TokenType.RESERVED_WORD_ELSE, "else", 14, 0),
+        Token(TokenType.RESERVED_WORD_THEN, "then", 15, 0),
+        Token(TokenType.RESERVED_WORD_WRITE, "write", 16, 0),
+        Token(TokenType.RESERVED_WORD_WRITELN, "writeln", 17, 0),
+        Token(TokenType.RESERVED_WORD_READ, "read", 18, 0),
+        Token(TokenType.RESERVED_WORD_READLN, "readln", 19, 0),
     ]
     
-    assert lexer.tokenize() == expected
-
+    tokens(filename, expected)
 
 
 def test_string_tokens():
     filename = "./examples/string.pas"
-
-    lexer = Lexical(filename)
 
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
@@ -55,11 +58,10 @@ def test_string_tokens():
         Token(TokenType.RESERVED_WORD_END, "end", 8, 0),
     ]
     
-    assert lexer.tokenize() == expected
+    tokens(filename, expected)
     
 
 def test_string_error():
-
     filename = "./examples/string_error.pas"
 
     lexer = Lexical(filename)
@@ -70,9 +72,7 @@ def test_string_error():
 
 def test_numbers():
     filename = "./examples/numbers.pas"
-    
-    lexer = Lexical(filename)
-    
+        
     expected: List[Token] = [
         Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
         Token(TokenType.VARIABLE, "Numbers", 0, 8),
@@ -86,7 +86,7 @@ def test_numbers():
         Token(TokenType.RESERVED_WORD_END, "end", 9, 0),
     ]
     
-    assert lexer.tokenize() == expected
+    tokens(filename, expected)
     
         
 @pytest.mark.parametrize("filename", [
@@ -100,3 +100,58 @@ def test_invalid_number_errors(filename):
     
     with pytest.raises(InvalidNumberError) as excinfo:
         lexer.tokenize()
+        
+        
+def test_equal():
+    filename = "./examples/equal.pas"
+        
+    expected: List[Token] = [
+        Token(TokenType.OPERATOR_EQUAL, "=", 0, 0),
+        Token(TokenType.OPERATOR_EQUAL, "==", 1, 0),
+        Token(TokenType.OPERATOR_EQUAL, "==", 2, 0),
+        Token(TokenType.OPERATOR_EQUAL, "=", 2, 2)
+    ]
+    
+    tokens(filename, expected)
+    
+
+def test_operators():
+    filename = "./examples/operators.pas"
+        
+    expected: List[Token] = [
+        Token(TokenType.OPERATOR_PLUS, "+", 0, 0),
+        Token(TokenType.OPERATOR_MINUS, "-", 1, 0),
+        Token(TokenType.OPERATOR_MULTIPLY, "*", 2, 0),
+        Token(TokenType.OPERATOR_DIVIDE, "/", 3, 0),
+        
+        Token(TokenType.OPERATOR_MOD, "mod", 4, 0),
+        Token(TokenType.OPERATOR_INTEGER_DIVIDER, "div", 5, 0),
+        Token(TokenType.OPERATOR_OR, "or", 6, 0),
+        Token(TokenType.OPERATOR_AND, "and", 7, 0),
+        Token(TokenType.OPERATOR_NOT, "not", 8, 0),
+        
+        Token(TokenType.OPERATOR_EQUAL, "=", 9, 0),
+        Token(TokenType.OPERATOR_EQUAL, "==", 10, 0),
+        Token(TokenType.OPERATOR_NOT_EQUAL, "<>", 11, 0),
+        Token(TokenType.OPERATOR_GREATER, ">", 12, 0),
+        Token(TokenType.OPERATOR_GREATER_EQUAL, ">=", 13, 0),
+        Token(TokenType.OPERATOR_LESS, "<", 14, 0),
+        Token(TokenType.OPERATOR_LESS_EQUAL, "<=", 15, 0),
+        Token(TokenType.OPERATOR_ASSIGN, ":=", 16, 0)
+    ]
+    
+    tokens(filename, expected)
+    
+def test_symbols():
+    filename = "./examples/symbols.pas"
+        
+    expected: List[Token] = [
+        Token(TokenType.SEMICOLON, ";", 0, 0),
+        Token(TokenType.COMMA, ",", 1, 0),
+        Token(TokenType.DOT, ".", 2, 0),
+        Token(TokenType.COLON, ":", 3, 0),
+        Token(TokenType.OPEN_PARENTHESES, "(", 4, 0),
+        Token(TokenType.CLOSE_PARENTHESES, ")", 5, 0),
+    ]
+    
+    tokens(filename, expected)
