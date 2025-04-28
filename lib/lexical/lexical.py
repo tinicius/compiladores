@@ -186,8 +186,10 @@ class Lexical:
                         return Token(TokenType.BLOCK_COMMENT, '{}', start_line, start_column)
                     elif c == '}':
                         raise Exception("Error: Unmatched closing brace at line " + str(self.line) + " column "+ str(self.column))
-                    else:
+                    elif c in ['\n', ' ', '\t']:
                         break
+                    else:
+                        raise Exception("Error: Invalid character at line " + str(self.line) + " column " + str(start_column) + ".")
 
                 case 1:
                     if c.isalpha() or c.isdigit():
