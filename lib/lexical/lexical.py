@@ -39,21 +39,32 @@ class Lexical:
         start_column = self.column
         token_buffer = ""
         c = ""
+        has_digit_after_point = False
 
         while state != 2 and state != 14:
             c = self.get_char()
             self.column += 1
 
-            if c == '':
-
+            if c == '':               
                 if state == 1:
                     state = 2
-                    break
-                
+                    break                            
                 if state == 6:
-                    raise StringError(f"Invalid string at: {self.line}, {self.column}")
-                
+                    raise StringError(f"Invalid string at: {self.line}, {self.column}")                            
+                if state == 5:  
+                    break  
+                if state == 7:
+                    break
+                if state == 9:
+                    break
+                if state == 10:  
+                    break
+                if state == 11:  
+                    if not has_digit_after_point:
+                        raise InvalidNumberError("Error: Invalid float number (missing digits after decimal point) at line " + str(self.line) + " column " + str(start_column) + ".")
+                    break            
                 return Token(TokenType.EOF, "", self.line, 0)
+            
         
             match state:
                 case 0:
@@ -80,12 +91,11 @@ class Lexical:
                         elif c == '/':
                             next_char = self.get_char()
                             if next_char == '/':
-                                token_buffer += next_char
-                                comment_token = Token(TokenType.LINE_COMMENT, token_buffer, self.line, start_column)
+                                token_buffer += next_char                                
                                 self.line += 1
                                 self.idx = 0
                                 self.column = 0
-                                return comment_token                            
+                                break                           
                             else:
                                 if next_char != '':
                                     self.idx -= 1
@@ -183,7 +193,7 @@ class Lexical:
                                 self.column = 0
                             else:
                                 self.column += 1
-                        return Token(TokenType.BLOCK_COMMENT, '{}', start_line, start_column)
+                        break
                     elif c == '}':
                         raise Exception("Error: Unmatched closing brace at line " + str(self.line) + " column "+ str(self.column))
                     elif c in ['\n', ' ', '\t']:
@@ -209,8 +219,12 @@ class Lexical:
                     elif c == '.':
                         token_buffer += c
                         state = 11
-                    else:
-                        raise InvalidNumberError("Error: Invalid number at line " + str(self.line) + " column " + str(self.column) + ".")
+                    elif c in ['\n', ' ', '\t']:
+                        break
+                    else:                        
+                        self.idx -= 1
+                        self.column -= 1
+                        break
                 case 7:
                     if c == '.':
                         token_buffer += c
@@ -218,24 +232,33 @@ class Lexical:
                     elif c in '01234567':
                         token_buffer += c
                         state = 7
-                    elif c in ['\n', ' ']:
-                        break       
-                    else:
-                        raise Exception("Error: Invalid octal number at line" + str(self.line) + " column " + str(self.column) + ".")
+                    elif c in ['\n', ' ', '\t']:
+                        break
+                    else:                        
+                        self.idx -= 1
+                        self.column -= 1
+                        break 
                 case 8:
                     if c in '0123456789abcdefABCDEF':
                         token_buffer += c
                         state = 9
-                    else:
-                        raise InvalidNumberError("Error: Invalid hexadecimal number at line" + str(self.line) + " column " + str(self.column) + ".")
+                    elif c in ['\n', ' ', '\t']:                        
+                        raise InvalidNumberError("Error: Incomplete hexadecimal number at line " + str(self.line) + " column " + str(start_column) + ".")
+                    else:                        
+                        self.idx -= 1
+                        self.column -= 1                    
+                        raise InvalidNumberError("Error: Invalid hexadecimal digit at line " + str(self.line) + " column " + str(self.column) + ".")
                 case 9:
                     if c in '0123456789abcdefABCDEF':
                         token_buffer += c
                         state = 9    
-                    elif c in ['\n', ' ']:
+                    elif c in ['\n', ' ', '\t']:
                         break
-                    else:
-                        raise Exception("Error: Invalid hexadecimal number at line" + str(self.line) + " column " + str(self.column) + ".")
+                    else:                        
+                        self.idx -= 1
+                        self.column -= 1
+                        break
+
                 case 10:
                     if c in '0123456789':
                         token_buffer += c
@@ -243,22 +266,24 @@ class Lexical:
                     elif c == '.':
                         token_buffer += c
                         state = 11
-                    elif c in ['\n', ' ']: 
+                    elif c in ['\n', ' ', '\t']: 
                         break
-                    else:
-                        raise InvalidNumberError("Error: Invalid decimal number at line" + str(self.line) + " column " + str(self.column) + ".")
+                    else:                    
+                        self.idx -= 1
+                        self.column -= 1
+                        break
                 case 11:
                     if c.isdigit():
                         token_buffer += c
                         state = 11
-                    elif c == '\n' and token_buffer[len(token_buffer) - 1] == '.':
-                        token_buffer += '0'
+                        has_digit_after_point = True
+                    elif c in ['\n', ' ', '\t'] or not c.isalnum():                        
+                        if not has_digit_after_point:
+                            raise InvalidNumberError("Error: Invalid float number (missing digits after decimal point) at line " + str(self.line) + " column " + str(start_column) + ".")                        
+                        if c not in ['\n', ' ', '\t']:
+                            self.idx -= 1
+                            self.column -= 1
                         break
-                    elif c == '\n':
-                        break
-                    else:
-                        raise InvalidNumberError("Error: Invalid float number at line" + str(self.line) + " column " + str(self.column) + ".")
-
 
                 case 6:
                     if c == "\\":
@@ -300,6 +325,8 @@ class Lexical:
                 token = Token(token_map[token_buffer], token_buffer, self.line, start_column)
             else:
                 token = Token(TokenType.VARIABLE, token_buffer, self.line, start_column)
+        elif state == 5:  # Adicione este caso para o número 0
+            token = Token(TokenType.OCTAL, token_buffer, self.line, start_column)
         elif state == 7:
             token = Token(TokenType.OCTAL, token_buffer, self.line, start_column)    
         elif state == 9:
