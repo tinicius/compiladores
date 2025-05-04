@@ -17,53 +17,9 @@ class Lexical:
 
         self.idx = 0
 
-        self.numbers_delimiters = {
-            " ",
-            "\t",
-            "\n",
-            "(",
-            ")",
-            "{",
-            "}",
-            ",",
-            ";",
-            ":",
-            "+",
-            "-",
-            "*",
-            "/",
-            "=",
-            "<",
-            ">",
-            '"',
-            "'",
-            "\\",
-        }
+        self.numbers_delimiters = {" ", "\t", "\n", "(", ")", "{", "}", ",", ";", ":", "+", "-", "*", "/", "=", "<", ">", '"', "'", "\\"}
 
-        self.hexadecimal_characters = {
-            "0",
-            "1",
-            "2",
-            "3",
-            "4",
-            "5",
-            "6",
-            "7",
-            "8",
-            "9",
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "F",
-        }
+        self.hexadecimal_characters = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "A", "B", "C", "D", "E", "F"}
 
     def get_char(self) -> str:
         try:
@@ -128,26 +84,11 @@ class Lexical:
                     elif c in {"+", "-", "*", "/"}:
                         token_buffer += c
                         if c == "+":
-                            return Token(
-                                TokenType.OPERATOR_PLUS,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_PLUS, token_buffer, self.line, start_column)
                         elif c == "-":
-                            return Token(
-                                TokenType.OPERATOR_MINUS,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_MINUS, token_buffer, self.line, start_column)
                         elif c == "*":
-                            return Token(
-                                TokenType.OPERATOR_MULTIPLY,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_MULTIPLY, token_buffer, self.line, start_column)
                         elif c == "/":
                             next_char = self.get_char()
                             if next_char == "/":
@@ -159,156 +100,91 @@ class Lexical:
                             else:
                                 if next_char != "":
                                     self.idx -= 1
-                                return Token(
-                                    TokenType.OPERATOR_DIVIDE,
-                                    token_buffer,
-                                    self.line,
-                                    start_column,
-                                )
+                                return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
                     elif c == "=":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char == "=":
                             token_buffer += next_char
                             self.column += 1
-                            return Token(
-                                TokenType.OPERATOR_EQUAL,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_EQUAL, token_buffer, self.line, start_column)
                         else:
                             if next_char != "":
                                 self.idx -= 1
-                            return Token(
-                                TokenType.OPERATOR_EQUAL,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_EQUAL, token_buffer, self.line, start_column)
                     elif c == "<":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char == ">":
                             token_buffer += next_char
                             self.column += 1
-                            return Token(
-                                TokenType.OPERATOR_NOT_EQUAL,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_NOT_EQUAL, token_buffer, self.line, start_column)
                         elif next_char == "=":
                             token_buffer += next_char
                             self.column += 1
-                            return Token(
-                                TokenType.OPERATOR_LESS_EQUAL,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_LESS_EQUAL, token_buffer, self.line, start_column)
                         else:
                             if next_char != "":
                                 self.idx -= 1
-                            return Token(
-                                TokenType.OPERATOR_LESS,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_LESS, token_buffer, self.line, start_column)
                     elif c == ">":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char == "=":
                             token_buffer += next_char
                             self.column += 1
-                            return Token(
-                                TokenType.OPERATOR_GREATER_EQUAL,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_GREATER_EQUAL, token_buffer, self.line, start_column)
                         else:
                             if next_char != "":
                                 self.idx -= 1
-                            return Token(
-                                TokenType.OPERATOR_GREATER,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_GREATER, token_buffer, self.line, start_column)
                     elif c == ":":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char == "=":
                             token_buffer += next_char
                             self.column += 1
-                            return Token(
-                                TokenType.OPERATOR_ASSIGN,
-                                token_buffer,
-                                self.line,
-                                start_column,
-                            )
+                            return Token(TokenType.OPERATOR_ASSIGN, token_buffer, self.line, start_column)
                         else:
                             if next_char != "":
                                 self.idx -= 1
-                            return Token(
-                                TokenType.COLON, token_buffer, self.line, start_column
-                            )
+                            return Token(TokenType.COLON, token_buffer, self.line, start_column)
                     elif c == ";":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char != "":
                             self.idx -= 1
-                        return Token(
-                            TokenType.SEMICOLON, token_buffer, self.line, start_column
-                        )
+                        return Token(TokenType.SEMICOLON, token_buffer, self.line, start_column)
                     elif c == ",":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char != "":
                             self.idx -= 1
-                        return Token(
-                            TokenType.COMMA, token_buffer, self.line, start_column
-                        )
+                        return Token(TokenType.COMMA, token_buffer, self.line, start_column)
                     elif c == ".":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char != "":
                             self.idx -= 1
-                        return Token(
-                            TokenType.DOT, token_buffer, self.line, start_column
-                        )
+                        return Token(TokenType.DOT, token_buffer, self.line, start_column)
                     elif c == "(":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char != "":
                             self.idx -= 1
-                        return Token(
-                            TokenType.OPEN_PARENTHESES,
-                            token_buffer,
-                            self.line,
-                            start_column,
-                        )
+                        return Token(TokenType.OPEN_PARENTHESES, token_buffer, self.line, start_column)
                     elif c == ")":
                         token_buffer += c
                         next_char = self.get_char()
                         if next_char != "":
                             self.idx -= 1
-                        return Token(
-                            TokenType.CLOSE_PARENTHESES,
-                            token_buffer,
-                            self.line,
-                            start_column,
-                        )
+                        return Token(TokenType.CLOSE_PARENTHESES, token_buffer, self.line, start_column)
                     elif c == "{":
                         start_column = self.column - 1
                         while True:
                             next_char = self.get_char()
                             if next_char == "":
-                                raise Exception(
-                                    f"Error: Unclosed block comment starting at line {self.line} column {self.column}."
-                                )
+                                raise Exception(f"Error: Unclosed block comment starting at line {self.line} column {self.column}.")
                             if next_char == "}":
                                 break
                             if next_char == "\n":
@@ -319,15 +195,11 @@ class Lexical:
                                 self.column += 1
                         break
                     elif c == "}":
-                        raise Exception(
-                            f"Error: Unmatched closing brace at line {self.line} column {self.column}"
-                        )
+                        raise Exception(f"Error: Unmatched closing brace at line {self.line} column {self.column}")
                     elif c in {"\n", " ", "\t"}:
                         break
                     else:
-                        raise Exception(
-                            f"Error: Invalid character at line {self.line} column {start_column}."
-                        )
+                        raise Exception(f"Error: Invalid character at line {self.line} column {start_column}.")
                 case 1:
                     if c.isalpha() or c.isdigit():
                         token_buffer += c
@@ -349,9 +221,7 @@ class Lexical:
                     elif c in self.numbers_delimiters:
                         break
                     else:
-                        raise InvalidNumberError(
-                            f"Error: Invalid digit at line {self.line} column {self.column}."
-                        )
+                        raise InvalidNumberError(f"Error: Invalid digit at line {self.line} column {self.column}.")
                 case 6:
                     if c == "\\":
                         state = 13
@@ -359,9 +229,7 @@ class Lexical:
                         token_buffer += c
                         state = 14
                     elif c == "\n":
-                        raise StringError(
-                            f"Invalid string at: {self.line}, {self.column}"
-                        )
+                        raise StringError(f"Invalid string at: {self.line}, {self.column}")
                     else:
                         token_buffer += c
                         state = 6
@@ -383,15 +251,11 @@ class Lexical:
                         token_buffer += c
                         state = 9
                     elif c in {"\n", " ", "\t"}:
-                        raise InvalidNumberError(
-                            f"Error: Incomplete hexadecimal number at line {self.line} column {start_column}."
-                        )
+                        raise InvalidNumberError(f"Error: Incomplete hexadecimal number at line {self.line} column {start_column}.")
                     else:
                         self.idx -= 1
                         self.column -= 1
-                        raise InvalidNumberError(
-                            f"Error: Invalid hexadecimal digit at line {self.line} column {self.column}."
-                        )
+                        raise InvalidNumberError(f"Error: Invalid hexadecimal digit at line {self.line} column {self.column}.")
                 case 9:
                     if c in self.hexadecimal_characters:
                         token_buffer += c
@@ -412,9 +276,7 @@ class Lexical:
                     elif c in ["\n", " ", "\t"]:
                         break
                     else:
-                        raise InvalidNumberError(
-                            f"Error: Invalid digit at line {self.line} column {self.column}."
-                        )
+                        raise InvalidNumberError(f"Error: Invalid digit at line {self.line} column {self.column}.")
                 case 11:
                     if c.isdigit():
                         token_buffer += c
@@ -427,9 +289,7 @@ class Lexical:
                         self.column -= 1
                         break
                     else:
-                        raise InvalidNumberError(
-                            f"Error: Invalid float number at line {self.line} column {self.column}."
-                        )
+                        raise InvalidNumberError(f"Error: Invalid float number at line {self.line} column {self.column}.")
                 case 13:
                     if c == "n":
                         token_buffer += "\n"
@@ -454,9 +314,7 @@ class Lexical:
 
         if state == 2:
             if token_map.get(token_buffer) is not None:
-                token = Token(
-                    token_map[token_buffer], token_buffer, self.line, start_column
-                )
+                token = Token(token_map[token_buffer], token_buffer, self.line, start_column)
             else:
                 token = Token(TokenType.VARIABLE, token_buffer, self.line, start_column)
         elif state == 5:  # Adicione este caso para o número 0
