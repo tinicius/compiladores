@@ -250,7 +250,7 @@ class Lexical:
                     if c in self.hexadecimal_characters:
                         token_buffer += c
                         state = 9
-                    elif c in {"\n", " ", "\t"}:
+                    elif c in self.numbers_delimiters:
                         raise InvalidNumberError(f"Error: Incomplete hexadecimal number at line {self.line} column {start_column}.")
                     else:
                         self.idx -= 1
@@ -260,7 +260,7 @@ class Lexical:
                     if c in self.hexadecimal_characters:
                         token_buffer += c
                         state = 9
-                    elif c in ["\n", " ", "\t"]:
+                    elif c in self.numbers_delimiters:
                         break
                     else:
                         self.idx -= 1
@@ -273,7 +273,7 @@ class Lexical:
                     elif c == ".":
                         token_buffer += c
                         state = 11
-                    elif c in ["\n", " ", "\t"]:
+                    elif c in self.numbers_delimiters:
                         break
                     else:
                         raise InvalidNumberError(f"Error: Invalid digit at line {self.line} column {self.column}.")
