@@ -74,16 +74,37 @@ def test_numbers():
     filename = "./lib/tests/files/numbers.pas"
         
     expected: List[Token] = [
-        Token(TokenType.RESERVED_WORD_PROGRAM, "program", 0, 0),
-        Token(TokenType.VARIABLE, "Numbers", 0, 8),
-        Token(TokenType.RESERVED_WORD_BEGIN, "begin", 2, 0),
-        Token(TokenType.HEXADECIMAL, "0x1A", 3, 2),
-        Token(TokenType.DECIMAL, "10", 4, 2),
-        Token(TokenType.FLOAT, "1.54", 5, 2),
-        Token(TokenType.OCTAL, "07", 6, 2),
-        Token(TokenType.FLOAT, "0.5", 7, 2),
-        Token(TokenType.FLOAT, "1.0", 8, 2),
-        Token(TokenType.RESERVED_WORD_END, "end", 9, 0),
+        Token(TokenType.HEXADECIMAL, "0x1A", 0, 0),
+        Token(TokenType.DECIMAL, "10", 1, 0),
+        Token(TokenType.FLOAT, "1.54", 2, 0),
+        Token(TokenType.OCTAL, "07", 3, 0),
+        Token(TokenType.FLOAT, "0.5", 4, 0),
+        Token(TokenType.FLOAT, "1.0", 5, 0),
+        
+        Token(TokenType.DECIMAL, "8", 7, 0),
+        Token(TokenType.OPERATOR_LESS_EQUAL, "<=", 7, 1),
+
+        Token(TokenType.FLOAT, "89.123", 7, 4),
+        Token(TokenType.OPERATOR_GREATER, ">", 7, 10),
+
+        Token(TokenType.OCTAL, "06", 7, 12),
+        Token(TokenType.OPERATOR_ASSIGN, ":=", 7, 14),
+
+        Token(TokenType.HEXADECIMAL, "0xFFF", 7, 17),
+        Token(TokenType.SEMICOLON, ";", 7, 22),
+
+        Token(TokenType.FLOAT, "1.0", 7, 24),
+        Token(TokenType.SEMICOLON, ";", 7, 26),
+
+        Token(TokenType.DECIMAL, "7", 8, 0),
+
+        Token(TokenType.FLOAT, "4321.123", 8, 2),
+
+        Token(TokenType.OCTAL, "01", 8, 11),
+
+        Token(TokenType.HEXADECIMAL, "0xA", 8, 14),
+
+        Token(TokenType.FLOAT, "1.0", 8, 18),
     ]
     
     tokens(filename, expected)
