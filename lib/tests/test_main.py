@@ -115,6 +115,8 @@ def test_numbers():
     "./lib/tests/files/number_error2.pas",
     "./lib/tests/files/number_error3.pas",
     "./lib/tests/files/number_error4.pas",
+    "./lib/tests/files/number_error5.pas",
+    "./lib/tests/files/number_error6.pas",
 ])
 def test_invalid_number_errors(filename):
     lexer = Lexical(filename)
