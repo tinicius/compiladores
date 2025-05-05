@@ -21,6 +21,10 @@ class Lexical:
 
         self.hexadecimal_characters = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "A", "B", "C", "D", "E", "F"}
 
+        self.octal_characters = {"0", "1", "2", "3", "4", "5", "6", "7"}
+
+        self.brace_delimiters = {"\n", " ", "\t"}
+
     def get_char(self) -> str:
         try:
 
@@ -81,26 +85,28 @@ class Lexical:
                     elif c == '"':
                         token_buffer += c
                         state = 6
-                    elif c in {"+", "-", "*", "/"}:
+                    elif c == '+':
                         token_buffer += c
-                        if c == "+":
-                            return Token(TokenType.OPERATOR_PLUS, token_buffer, self.line, start_column)
-                        elif c == "-":
-                            return Token(TokenType.OPERATOR_MINUS, token_buffer, self.line, start_column)
-                        elif c == "*":
-                            return Token(TokenType.OPERATOR_MULTIPLY, token_buffer, self.line, start_column)
-                        elif c == "/":
-                            next_char = self.get_char()
-                            if next_char == "/":
-                                token_buffer += next_char
-                                self.line += 1
-                                self.idx = 0
-                                self.column = 0
-                                break
-                            else:
-                                if next_char != "":
-                                    self.idx -= 1
-                                return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
+                        return Token(TokenType.OPERATOR_PLUS, token_buffer, self.line, start_column)
+                    elif c == '-':
+                        token_buffer += c
+                        return Token(TokenType.OPERATOR_MINUS, token_buffer, self.line, start_column)
+                    elif c == '*':
+                        token_buffer += c
+                        return Token(TokenType.OPERATOR_MULTIPLY, token_buffer, self.line, start_column)
+                    elif c == '/':
+                        token_buffer += c
+                        next_char = self.get_char()
+                        if next_char == "/":
+                            token_buffer += next_char
+                            self.line += 1
+                            self.idx = 0
+                            self.column = 0
+                            break
+                        else:
+                            if next_char != "":
+                                self.idx -= 1
+                            return Token(TokenType.OPERATOR_DIVIDE, token_buffer, self.line, start_column)
                     elif c == "=":
                         token_buffer += c
                         next_char = self.get_char()
@@ -196,7 +202,7 @@ class Lexical:
                         break
                     elif c == "}":
                         raise Exception(f"Error: Unmatched closing brace at line {self.line} column {self.column}")
-                    elif c in {"\n", " ", "\t"}:
+                    elif c in self.brace_delimiters:
                         break
                     else:
                         raise Exception(f"Error: Invalid character at line {self.line} column {start_column}.")
@@ -209,7 +215,7 @@ class Lexical:
                         self.column -= 1
                         state = 2
                 case 5:
-                    if c in {"0", "1", "2", "3", "4", "5", "6", "7"}:
+                    if c in self.octal_characters:
                         token_buffer += c
                         state = 7
                     elif c == "x":
@@ -239,7 +245,7 @@ class Lexical:
                     if c == ".":
                         token_buffer += c
                         state = 11
-                    elif c.isdigit():
+                    elif c in self.octal_characters:
                         token_buffer += c
                         state = 7
                     elif c in self.numbers_delimiters:
@@ -247,9 +253,7 @@ class Lexical:
                         self.column -= 1
                         break
                     else:
-                        self.idx -= 1
-                        self.column -= 1
-                        break
+                        raise InvalidNumberError(f"Error: Invalid octal digit at line {self.line} column {self.column}.")
                 case 8:
                     if c in self.hexadecimal_characters:
                         token_buffer += c
@@ -267,9 +271,7 @@ class Lexical:
                         self.column -= 1
                         break
                     else:
-                        self.idx -= 1
-                        self.column -= 1
-                        break
+                        raise InvalidNumberError(f"Error: Invalid hexadecimal digit at line {self.line} column {self.column}.")
                 case 10:
                     if c.isdigit():
                         token_buffer += c
