@@ -219,6 +219,8 @@ class Lexical:
                         token_buffer += c
                         state = 11
                     elif c in self.numbers_delimiters:
+                        self.idx -= 1
+                        self.column -= 1
                         break
                     else:
                         raise InvalidNumberError(f"Error: Invalid digit at line {self.line} column {self.column}.")
@@ -241,6 +243,8 @@ class Lexical:
                         token_buffer += c
                         state = 7
                     elif c in self.numbers_delimiters:
+                        self.idx -= 1
+                        self.column -= 1
                         break
                     else:
                         self.idx -= 1
@@ -253,14 +257,14 @@ class Lexical:
                     elif c in self.numbers_delimiters:
                         raise InvalidNumberError(f"Error: Incomplete hexadecimal number at line {self.line} column {start_column}.")
                     else:
-                        self.idx -= 1
-                        self.column -= 1
                         raise InvalidNumberError(f"Error: Invalid hexadecimal digit at line {self.line} column {self.column}.")
                 case 9:
                     if c in self.hexadecimal_characters:
                         token_buffer += c
                         state = 9
                     elif c in self.numbers_delimiters:
+                        self.idx -= 1
+                        self.column -= 1
                         break
                     else:
                         self.idx -= 1
@@ -274,6 +278,8 @@ class Lexical:
                         token_buffer += c
                         state = 11
                     elif c in self.numbers_delimiters:
+                        self.idx -= 1
+                        self.column -= 1
                         break
                     else:
                         raise InvalidNumberError(f"Error: Invalid digit at line {self.line} column {self.column}.")
