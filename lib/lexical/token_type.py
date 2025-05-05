@@ -34,8 +34,6 @@ class TokenType(Enum):
     HEXADECIMAL = auto()
     FLOAT = auto()
     DECIMAL = auto()
-    LINE_COMMENT = auto()
-    BLOCK_COMMENT = auto()
     # operadores aritméticos
     OPERATOR_PLUS = auto()
     OPERATOR_MINUS = auto()
