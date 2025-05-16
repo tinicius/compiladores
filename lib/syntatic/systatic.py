@@ -26,6 +26,9 @@ class Syntatic:
 
         if token_type == self.current_token.token_type:
             self.advance()
+        else:
+            raise Exception(
+                f"Expected token type {token_type}, but got {self.current_token.token_type} at line {self.current_token.line}, column {self.current_token.column}")
 
     def start(self):
         self.advance()
