@@ -33,6 +33,10 @@ class Syntatic:
         self.procFunction()
 
     def procFunction(self):
+        """
+            <function*> -> 'program' 'IDENT' ';' <declarations> 'begin' <stmtList> 'end' '.' ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_PROGRAM)
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.SEMICOLON)
@@ -47,12 +51,20 @@ class Syntatic:
         self.eat(TokenType.DOT)
 
     def procDeclarations(self):
+        """
+            <declarations> -> var <declaration> <restoDeclaration> ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_VAR)
 
         self.procDeclaration()
         self.procRestoDeclaration()
 
     def procDeclaration(self):
+        """
+            <declaration> -> <listaIdent> ':' <type> ';' ;
+        """
+
         self.procListIdent()
         self.eat(TokenType.COLON)
 
@@ -61,44 +73,124 @@ class Syntatic:
         self.eat(TokenType.SEMICOLON)
 
     def procListIdent(self):
+        """
+            <listaIdent> -> 'IDENT' <restoIdentList> ;
+        """
+
         self.eat(TokenType.VARIABLE)
         self.procRestoListIdent()
 
     def procRestoListIdent(self):
+        """
+            <restoIdentList> -> ',' 'IDENT' <restoIdentList> | & ;
+        """
+
         if self.current_token.token_type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
             self.eat(TokenType.VARIABLE)
             self.procRestoListIdent()
+        else:
+            pass
 
     def procRestoDeclaration(self):
+        """
+            <restoDeclaration> -> <declaration> <restoDeclaration> | & ;
+        """
+
         if self.current_token.token_type == TokenType.VARIABLE:
             self.procDeclaration()
             self.procRestoDeclaration()
+        else:
+            pass
 
     def procType(self):
+        """
+            <type> -> 'integer' | 'real' | 'string' ;
+        """
+
         if self.current_token.token_type == TokenType.RESERVED_WORD_INTEGER:
             self.eat(TokenType.RESERVED_WORD_INTEGER)
-        elif self.current_token.token_type == TokenType.FLOAT:
-            self.eat(TokenType.FLOAT)
+        elif self.current_token.token_type == TokenType.RESERVED_WORD_REAL:
+            self.eat(TokenType.RESERVED_WORD_REAL)
         elif self.current_token.token_type == TokenType.RESERVED_WORD_STRING:
             self.eat(TokenType.RESERVED_WORD_STRING)
 
     def procBloco(self):
+        """
+            <bloco> -> 'begin' <stmtList> 'end' ';' ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_BEGIN)
+
         self.procStmtList()
+
         self.eat(TokenType.RESERVED_WORD_END)
         self.eat(TokenType.SEMICOLON)
 
     def procStmtList(self):
-        if self.current_token.token_type in {TokenType.RESERVED_WORD_FOR, TokenType.RESERVED_WORD_READ, TokenType.RESERVED_WORD_WRITE, TokenType.RESERVED_WORD_READLN, TokenType.RESERVED_WORD_WRITELN, TokenType.RESERVED_WORD_WHILE, TokenType.VARIABLE, TokenType.RESERVED_WORD_IF, TokenType.RESERVED_WORD_BEGIN, TokenType.RESERVED_WORD_BREAK, TokenType.RESERVED_WORD_CONTINUE, TokenType.SEMICOLON}:
+        """
+            <stmtList> -> <stmt> <stmtList> | & ;
+        """
+
+        stmt = {
+            # forStmt
+            TokenType.RESERVED_WORD_FOR,
+
+            # ioStmt
+            TokenType.RESERVED_WORD_READ,
+            TokenType.RESERVED_WORD_WRITE,
+            TokenType.RESERVED_WORD_READLN,
+            TokenType.RESERVED_WORD_WRITELN,
+
+            # whileStmt
+            TokenType.RESERVED_WORD_WHILE,
+
+            # atrib
+            TokenType.VARIABLE,
+
+            # ifStmt
+            TokenType.RESERVED_WORD_IF,
+
+            # bloco
+            TokenType.RESERVED_WORD_BEGIN,
+
+            TokenType.RESERVED_WORD_BREAK,
+            TokenType.RESERVED_WORD_CONTINUE,
+            TokenType.SEMICOLON
+        }
+
+        if self.current_token.token_type in stmt:
             self.procStmt()
             self.procStmtList()
+        else:
+            pass
 
     def procStmt(self):
+        """
+            <stmt> -> <forStmt> 
+                    | <ioStmt>
+                    | <whileStmt>
+                    | <atrib> ';'
+                    | <ifStmt> 
+                    | <bloco> 
+                    | 'break'';'
+                    | 'continue'';'
+                    | ';' ;
+        """
+
+        io = {
+            TokenType.RESERVED_WORD_READ,
+            TokenType.RESERVED_WORD_WRITE,
+            TokenType.RESERVED_WORD_READLN,
+            TokenType.RESERVED_WORD_WRITELN
+        }
+
         if self.current_token.token_type == TokenType.RESERVED_WORD_FOR:
             self.procForStmt()
-        elif self.current_token.token_type in {TokenType.RESERVED_WORD_READ, TokenType.RESERVED_WORD_WRITE, TokenType.RESERVED_WORD_READLN, TokenType.RESERVED_WORD_WRITELN}:
+        elif self.current_token.token_type in io:
             self.procIoStmt()
+        elif self.current_token.token_type == TokenType.RESERVED_WORD_WHILE:
+            self.procWhileStmt()
         elif self.current_token.token_type == TokenType.VARIABLE:
             self.procAtrib()
             self.eat(TokenType.SEMICOLON)
@@ -116,14 +208,27 @@ class Syntatic:
             self.eat(TokenType.SEMICOLON)
 
     def procForStmt(self):
+        """
+            <forStmt> -> 'for' <atrib> 'to' <endFor> 'do' <stmt> ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_FOR)
+
         self.procAtrib()
+
         self.eat(TokenType.RESERVED_WORD_TO)
+
         self.procEndFor()
+
         self.eat(TokenType.RESERVED_WORD_DO)
+
         self.procStmt()
 
     def procEndFor(self):
+        """
+            <endFor> -> 'IDENT' | 'NUMint' ;
+        """
+
         if self.current_token.token_type == TokenType.VARIABLE:
             self.eat(TokenType.VARIABLE)
         if self.current_token.token_type == TokenType.DECIMAL:
@@ -134,6 +239,13 @@ class Syntatic:
             self.eat(TokenType.HEXADECIMAL)
 
     def procIoStmt(self):
+        """
+            <ioStmt> ->   'read' '(' 'IDENT' ')' ';' 
+                        | 'write' '(' <outList> ')' ';' ;
+                        | 'readln' '(' 'IDENT' ')' ';'
+                        | 'writeln' '(' <outList> ')' ';' ;
+        """
+
         if self.current_token.token_type == TokenType.RESERVED_WORD_READ:
             self.eat(TokenType.RESERVED_WORD_READ)
             self.eat(TokenType.OPEN_PARENTHESES)
@@ -160,15 +272,29 @@ class Syntatic:
             self.eat(TokenType.SEMICOLON)
 
     def procOutList(self):
+        """
+            <outList> -> <out> <restoOutList> ;
+        """
+
         self.procOut()
         self.procRestoOutList()
 
     def procRestoOutList(self):
+        """
+            <restoOutList> -> ',' <outList> | & ;
+        """
+
         if self.current_token.token_type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
             self.procOutList()
+        else:
+            pass
 
     def procOut(self):
+        """
+            <out> -> 'STR' | 'IDENT' | 'NUMint' | 'NUMfloat' ;
+        """
+
         if self.current_token.token_type == TokenType.STRING:
             self.eat(TokenType.STRING)
         elif self.current_token.token_type == TokenType.VARIABLE:
@@ -183,52 +309,105 @@ class Syntatic:
             self.eat(TokenType.FLOAT)
 
     def procWhileStmt(self):
+        """
+            <whileStmt> -> 'while' <expr> 'do' <stmt> ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_WHILE)
+
         self.procExpr()
+
         self.eat(TokenType.RESERVED_WORD_DO)
+
         self.procStmt()
 
     def procIfStmt(self):
+        """
+            <ifStmt> -> 'if' <expr> 'then' <stmt> <elsePart> ;
+        """
+
         self.eat(TokenType.RESERVED_WORD_IF)
+
         self.procExpr()
+
         self.eat(TokenType.RESERVED_WORD_THEN)
+
         self.procStmt()
         self.procElsePart()
 
     def procElsePart(self):
+        """
+            <elsePart> -> 'else' <stmt> | & ;
+        """
+
         if self.current_token.token_type == TokenType.RESERVED_WORD_ELSE:
             self.eat(TokenType.RESERVED_WORD_ELSE)
             self.procStmt()
+        else:
+            pass
 
     def procAtrib(self):
+        """
+            <atrib> -> 'IDENT' ':=' <expr> ;
+        """
+
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.OPERATOR_ASSIGN)
+
         self.procExpr()
 
     def procExpr(self):
+        """
+            <expr> -> <or> ;
+        """
+
         self.procOr()
 
     def procOr(self):
+        """
+            <or> -> <and> <restoOr> ;
+        """
+
         self.procAnd()
         self.procRestoOr()
 
     def procRestoOr(self):
+        """
+            <restoOr> -> 'or' <and> <restoOr> | & ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_OR:
             self.eat(TokenType.OPERATOR_OR)
             self.procAnd()
             self.procRestoOr()
+        else:
+            pass
 
     def procAnd(self):
+        """
+            <and> -> <not> <restoAnd> ;
+        """
+
         self.procNot()
         self.procRestoAnd()
 
     def procRestoAnd(self):
+        """
+            <restoAnd> -> 'and' <not> <restoAnd> | & ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_AND:
             self.eat(TokenType.OPERATOR_AND)
             self.procNot()
             self.procRestoAnd()
+        else:
+            pass
 
     def procNot(self):
+        """
+            <not> -> 'not' <not> | <rel> ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_NOT:
             self.eat(TokenType.OPERATOR_NOT)
             self.procNot()
@@ -236,10 +415,24 @@ class Syntatic:
             self.procRel()
 
     def procRel(self):
+        """
+            <rel> -> <add> <restoRel> ;
+        """
+
         self.procAdd()
         self.procRestoRel()
 
     def procRestoRel(self):
+        """
+            <restoRel> -> '==' <add> 
+                        | '<>' <add>
+                        | '<' <add> 
+                        | '<=' <add> 
+                        | '>' <add> 
+                        | '>=' <add> 
+                        | & ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_EQUAL:
             self.eat(TokenType.OPERATOR_EQUAL)
             self.procAdd()
@@ -258,12 +451,24 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.OPERATOR_GREATER_EQUAL:
             self.eat(TokenType.OPERATOR_GREATER_EQUAL)
             self.procAdd()
+        else:
+            pass
 
     def procAdd(self):
+        """
+            <add> -> <mult> <restoAdd> ;
+        """
+
         self.procMult()
         self.procRestoAdd()
 
     def procRestoAdd(self):
+        """
+            <restoAdd> -> '+' <mult> <restoAdd> 
+                        | '-' <mult> <restoAdd> 
+                        | & 
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_PLUS:
             self.eat(TokenType.OPERATOR_PLUS)
             self.procMult()
@@ -272,12 +477,26 @@ class Syntatic:
             self.eat(TokenType.OPERATOR_MINUS)
             self.procMult()
             self.procRestoAdd()
+        else:
+            pass
 
     def procMult(self):
+        """
+            <mult> -> <uno> <restoMult> ;
+        """
+
         self.procUno()
         self.procRestoMult()
 
     def procRestoMult(self):
+        """
+            <restoMult> -> '*' <uno> <restoMult>
+                        |  '/' <uno> <restoMult> 
+                        |  'mod' <uno> <restoMult>
+                        |  'div' <uno> <restoMult> 
+                        |  & ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_MULTIPLY:
             self.eat(TokenType.OPERATOR_MULTIPLY)
             self.procUno()
@@ -294,8 +513,16 @@ class Syntatic:
             self.eat(TokenType.OPERATOR_INTEGER_DIVIDER)
             self.procUno()
             self.procRestoMult()
+        else:
+            pass
 
     def procUno(self):
+        """
+            <uno> ->  '+' <uno> 
+                    | '-' <uno> 
+                    | <fator> ;
+        """
+
         if self.current_token.token_type == TokenType.OPERATOR_PLUS:
             self.eat(TokenType.OPERATOR_PLUS)
             self.procUno()
@@ -306,6 +533,14 @@ class Syntatic:
             self.procFactor()
 
     def procFactor(self):
+        """
+            <fator> -> 'NUMint' 
+                    |  'NUMfloat' 
+                    |  'IDENT'  
+                    |  '(' <expr> ')' 
+                    |  'STR' ;
+        """
+
         if self.current_token.token_type == TokenType.DECIMAL:
             self.eat(TokenType.DECIMAL)
         elif self.current_token.token_type == TokenType.OCTAL:
