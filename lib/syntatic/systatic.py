@@ -17,7 +17,7 @@ class Syntatic:
         if self.tokens:
             self.current_token = self.tokens.pop(0)
 
-    def eat(self, token_type: TokenType):
+    def eat(self, token_type: TokenType, next_token: bool = True):
         """
         Consume the current token if it matches the expected type.
         """
@@ -25,7 +25,8 @@ class Syntatic:
             raise Exception("Unexpected end of input")
 
         if token_type == self.current_token.token_type:
-            self.advance()
+            if next_token:
+                self.advance()
         else:
             raise Exception(
                 f"Expected token type {token_type}, but got {self.current_token.token_type} at line {self.current_token.line}, column {self.current_token.column}")
@@ -49,9 +50,12 @@ class Syntatic:
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
         self.procStmtList()
-
         self.eat(TokenType.RESERVED_WORD_END)
-        self.eat(TokenType.DOT)
+        self.eat(TokenType.DOT, next_token=False)
+
+        if len(self.tokens) > 0:
+            raise Exception(
+                f"Unexpected tokens after end of program: {self.tokens}")
 
     def procDeclarations(self):
         """
@@ -115,7 +119,7 @@ class Syntatic:
             self.eat(TokenType.RESERVED_WORD_INTEGER)
         elif self.current_token.token_type == TokenType.RESERVED_WORD_REAL:
             self.eat(TokenType.RESERVED_WORD_REAL)
-        elif self.current_token.token_type == TokenType.RESERVED_WORD_STRING:
+        else:
             self.eat(TokenType.RESERVED_WORD_STRING)
 
     def procBloco(self):
