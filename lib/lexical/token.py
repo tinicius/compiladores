@@ -7,14 +7,3 @@ class Token:
         self.lexeme = lexeme
         self.line = line
         self.column = column
-
-    def __hash__(self) -> int:
-        return hash((self.token_type, self.lexeme, self.line, self.column))
-
-    def __eq__(self, other):
-        if not isinstance(other, Token):
-            return False
-        return (self.token_type == other.token_type and
-                self.lexeme == other.lexeme and
-                self.line == other.line and
-                self.column == other.column)

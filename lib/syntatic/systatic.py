@@ -1,5 +1,6 @@
 from lib.lexical.token import Token
 from lib.lexical.token_type import TokenType
+from lib.syntatic.command import Command
 
 
 class Syntatic:
@@ -34,12 +35,14 @@ class Syntatic:
     def start(self):
         self.advance()
 
-        self.procFunction()
+        return self.procFunction()
 
     def procFunction(self):
         """
             <function*> -> 'program' 'IDENT' ';' <declarations> 'begin' <stmtList> 'end' '.' ;
         """
+
+        aux = []
 
         self.eat(TokenType.RESERVED_WORD_PROGRAM)
         self.eat(TokenType.VARIABLE)
@@ -49,13 +52,16 @@ class Syntatic:
 
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
-        self.procStmtList()
+        aux.extend(self.procStmtList())
+
         self.eat(TokenType.RESERVED_WORD_END)
         self.eat(TokenType.DOT, next_token=False)
 
         if len(self.tokens) > 0:
             raise Exception(
                 f"Unexpected tokens after end of program: {self.tokens}")
+
+        return aux
 
     def procDeclarations(self):
         """
@@ -167,10 +173,14 @@ class Syntatic:
         }
 
         if self.current_token.token_type in stmt:
-            self.procStmt()
-            self.procStmtList()
+            aux = []
+
+            aux.extend(self.procStmt())
+            aux.extend(self.procStmtList())
+
+            return aux
         else:
-            pass
+            return []
 
     def procStmt(self):
         """
@@ -195,7 +205,7 @@ class Syntatic:
         if self.current_token.token_type == TokenType.RESERVED_WORD_FOR:
             self.procForStmt()
         elif self.current_token.token_type in io:
-            self.procIoStmt()
+            return self.procIoStmt()
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WHILE:
             self.procWhileStmt()
         elif self.current_token.token_type == TokenType.VARIABLE:
@@ -213,6 +223,8 @@ class Syntatic:
             self.eat(TokenType.SEMICOLON)
         else:
             self.eat(TokenType.SEMICOLON)
+
+        return []
 
     def procForStmt(self):
         """
@@ -253,6 +265,8 @@ class Syntatic:
                         | 'writeln' '(' <outList> ')' ';' ;
         """
 
+        aux = []
+
         if self.current_token.token_type == TokenType.RESERVED_WORD_READ:
             self.eat(TokenType.RESERVED_WORD_READ)
             self.eat(TokenType.OPEN_PARENTHESES)
@@ -262,7 +276,9 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WRITE:
             self.eat(TokenType.RESERVED_WORD_WRITE)
             self.eat(TokenType.OPEN_PARENTHESES)
-            self.procOutList()
+
+            aux.extend(self.procOutList())
+
             self.eat(TokenType.CLOSE_PARENTHESES)
             self.eat(TokenType.SEMICOLON)
         elif self.current_token.token_type == TokenType.RESERVED_WORD_READLN:
@@ -274,17 +290,26 @@ class Syntatic:
         else:
             self.eat(TokenType.RESERVED_WORD_WRITELN)
             self.eat(TokenType.OPEN_PARENTHESES)
-            self.procOutList()
+
+            aux.extend(self.procOutList())
+            aux.append((Command.CALL, "WRITE", "\n"))
+
             self.eat(TokenType.CLOSE_PARENTHESES)
             self.eat(TokenType.SEMICOLON)
+
+        return aux
 
     def procOutList(self):
         """
             <outList> -> <out> <restoOutList> ;
         """
 
-        self.procOut()
-        self.procRestoOutList()
+        aux = []
+
+        aux.extend(self.procOut())
+        aux.extend(self.procRestoOutList())
+
+        return aux
 
     def procRestoOutList(self):
         """
@@ -293,27 +318,38 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
-            self.procOutList()
+            return self.procOutList()
         else:
-            pass
+            return []
 
     def procOut(self):
         """
             <out> -> 'STR' | 'IDENT' | 'NUMint' | 'NUMfloat' ;
         """
 
+        command = []
+
         if self.current_token.token_type == TokenType.STRING:
+            command.append((Command.CALL, "WRITE", self.current_token.lexeme))
             self.eat(TokenType.STRING)
         elif self.current_token.token_type == TokenType.VARIABLE:
+            command.append((Command.CALL, "WRITE", None,
+                           self.current_token.lexeme))
             self.eat(TokenType.VARIABLE)
         elif self.current_token.token_type == TokenType.DECIMAL:
             self.eat(TokenType.DECIMAL)
+            return []
         elif self.current_token.token_type == TokenType.OCTAL:
             self.eat(TokenType.OCTAL)
+            return []
         elif self.current_token.token_type == TokenType.HEXADECIMAL:
             self.eat(TokenType.HEXADECIMAL)
+            return []
         else:
             self.eat(TokenType.FLOAT)
+            return []
+
+        return command
 
     def procWhileStmt(self):
         """
