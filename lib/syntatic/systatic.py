@@ -209,8 +209,9 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WHILE:
             self.procWhileStmt()
         elif self.current_token.token_type == TokenType.VARIABLE:
-            self.procAtrib()
+            cmds = self.procAtrib()
             self.eat(TokenType.SEMICOLON)
+            return cmds
         elif self.current_token.token_type == TokenType.RESERVED_WORD_IF:
             self.procIfStmt()
         elif self.current_token.token_type == TokenType.RESERVED_WORD_BEGIN:
@@ -393,11 +394,21 @@ class Syntatic:
         """
             <atrib> -> 'IDENT' ':=' <expr> ;
         """
-
+        var_name = self.current_token.lexeme
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.OPERATOR_ASSIGN)
 
-        self.procExpr()
+        value = None
+        if self.current_token.token_type in [TokenType.DECIMAL, TokenType.OCTAL, TokenType.HEXADECIMAL, TokenType.FLOAT]:
+            value = self.current_token.lexeme
+            self.eat(self.current_token.token_type)
+            return [(Command.ATT, var_name, value)]
+        elif self.current_token.token_type == TokenType.VARIABLE:
+            value = self.current_token.lexeme
+            self.eat(TokenType.VARIABLE)
+            return [(Command.ATT, var_name, value)]
+        else:
+            raise Exception(f"Atribuição só suporta números ou variáveis (token: {self.current_token})")
 
     def procExpr(self):
         """
