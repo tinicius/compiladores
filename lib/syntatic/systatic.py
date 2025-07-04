@@ -271,9 +271,11 @@ class Syntatic:
         if self.current_token.token_type == TokenType.RESERVED_WORD_READ:
             self.eat(TokenType.RESERVED_WORD_READ)
             self.eat(TokenType.OPEN_PARENTHESES)
+            var_name = self.current_token.lexeme
             self.eat(TokenType.VARIABLE)
             self.eat(TokenType.CLOSE_PARENTHESES)
             self.eat(TokenType.SEMICOLON)
+            aux.append((Command.CALL, "READ", var_name))
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WRITE:
             self.eat(TokenType.RESERVED_WORD_WRITE)
             self.eat(TokenType.OPEN_PARENTHESES)
@@ -285,9 +287,11 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.RESERVED_WORD_READLN:
             self.eat(TokenType.RESERVED_WORD_READLN)
             self.eat(TokenType.OPEN_PARENTHESES)
+            var_name = self.current_token.lexeme
             self.eat(TokenType.VARIABLE)
             self.eat(TokenType.CLOSE_PARENTHESES)
             self.eat(TokenType.SEMICOLON)
+            aux.append((Command.CALL, "READLN", var_name))
         else:
             self.eat(TokenType.RESERVED_WORD_WRITELN)
             self.eat(TokenType.OPEN_PARENTHESES)
