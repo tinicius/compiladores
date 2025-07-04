@@ -525,7 +525,6 @@ class Syntatic:
         """
             <add> -> <mult> <restoAdd> ;
         """
-
         left = self.procMult()
         right = self.procRestoAdd()
         if right:
@@ -538,16 +537,17 @@ class Syntatic:
                         | '-' <mult> <restoAdd> 
                         | & 
         """
-
         if self.current_token.token_type == TokenType.OPERATOR_PLUS:
             self.eat(TokenType.OPERATOR_PLUS)
             left = self.procMult()
             right = self.procRestoAdd()
+            # ADD
             return left + right + [(Command.ADD,)]
         elif self.current_token.token_type == TokenType.OPERATOR_MINUS:
             self.eat(TokenType.OPERATOR_MINUS)
             left = self.procMult()
             right = self.procRestoAdd()
+            # SUB 
             return left + right + [(Command.SUB,)]
         else:
             return []
@@ -556,7 +556,6 @@ class Syntatic:
         """
             <mult> -> <uno> <restoMult> ;
         """
-
         left = self.procUno()
         right = self.procRestoMult()
         if right:
@@ -571,26 +570,29 @@ class Syntatic:
                         |  'div' <uno> <restoMult> 
                         |  & ;
         """
-
         if self.current_token.token_type == TokenType.OPERATOR_MULTIPLY:
             self.eat(TokenType.OPERATOR_MULTIPLY)
             left = self.procUno()
             right = self.procRestoMult()
+            # MULT
             return left + right + [(Command.MULT,)]
         elif self.current_token.token_type == TokenType.OPERATOR_DIVIDE:
             self.eat(TokenType.OPERATOR_DIVIDE)
             left = self.procUno()
             right = self.procRestoMult()
+            # DIV
             return left + right + [(Command.DIV,)]
         elif self.current_token.token_type == TokenType.OPERATOR_MOD:
             self.eat(TokenType.OPERATOR_MOD)
             left = self.procUno()
             right = self.procRestoMult()
+            # MOD
             return left + right + [(Command.MOD,)]
         elif self.current_token.token_type == TokenType.OPERATOR_INTEGER_DIVIDER:
             self.eat(TokenType.OPERATOR_INTEGER_DIVIDER)
             left = self.procUno()
             right = self.procRestoMult()
+            # IDIV
             return left + right + [(Command.IDIV,)]
         else:
             return []
@@ -623,7 +625,7 @@ class Syntatic:
         if self.current_token.token_type == TokenType.DECIMAL:
             value = self.current_token.lexeme
             self.eat(TokenType.DECIMAL)
-            return [("PUSH", value)]
+            return [("PUSH", value)] # PUSH do ASM, mandar para a pilha, então fazer operação
         elif self.current_token.token_type == TokenType.OCTAL:
             value = self.current_token.lexeme
             self.eat(TokenType.OCTAL)
