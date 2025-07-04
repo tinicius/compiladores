@@ -402,32 +402,26 @@ class Syntatic:
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.OPERATOR_ASSIGN)
 
-        value = None
-        if self.current_token.token_type in [TokenType.DECIMAL, TokenType.OCTAL, TokenType.HEXADECIMAL, TokenType.FLOAT]:
-            value = self.current_token.lexeme
-            self.eat(self.current_token.token_type)
-            return [(Command.ATT, var_name, value)]
-        elif self.current_token.token_type == TokenType.VARIABLE:
-            value = self.current_token.lexeme
-            self.eat(TokenType.VARIABLE)
-            return [(Command.ATT, var_name, value)]
-        else:
-            raise Exception(f"Atribuição só suporta números ou variáveis (token: {self.current_token})")
+        expr_cmds = self.procExpr()
+        return [(Command.ATT, var_name, expr_cmds)]
 
     def procExpr(self):
         """
             <expr> -> <or> ;
         """
 
-        self.procOr()
+        return self.procOr()
 
     def procOr(self):
         """
             <or> -> <and> <restoOr> ;
         """
 
-        self.procAnd()
-        self.procRestoOr()
+        left = self.procAnd()
+        right = self.procRestoOr()
+        if right:
+            return left + right + [(Command.OR,)]
+        return left
 
     def procRestoOr(self):
         """
@@ -436,18 +430,22 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_OR:
             self.eat(TokenType.OPERATOR_OR)
-            self.procAnd()
-            self.procRestoOr()
+            left = self.procAnd()
+            right = self.procRestoOr()
+            return left + right + [(Command.OR,)]
         else:
-            pass
+            return []
 
     def procAnd(self):
         """
             <and> -> <not> <restoAnd> ;
         """
 
-        self.procNot()
-        self.procRestoAnd()
+        left = self.procNot()
+        right = self.procRestoAnd()
+        if right:
+            return left + right + [(Command.AND,)]
+        return left
 
     def procRestoAnd(self):
         """
@@ -456,10 +454,11 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_AND:
             self.eat(TokenType.OPERATOR_AND)
-            self.procNot()
-            self.procRestoAnd()
+            left = self.procNot()
+            right = self.procRestoAnd()
+            return left + right + [(Command.AND,)]
         else:
-            pass
+            return []
 
     def procNot(self):
         """
@@ -468,17 +467,21 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_NOT:
             self.eat(TokenType.OPERATOR_NOT)
-            self.procNot()
+            result = self.procNot()
+            return result + [(Command.NOT,)]
         else:
-            self.procRel()
+            return self.procRel()
 
     def procRel(self):
         """
             <rel> -> <add> <restoRel> ;
         """
 
-        self.procAdd()
-        self.procRestoRel()
+        left = self.procAdd()
+        right = self.procRestoRel()
+        if right:
+            return left + right
+        return left
 
     def procRestoRel(self):
         """
@@ -493,32 +496,41 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_EQUAL:
             self.eat(TokenType.OPERATOR_EQUAL)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.EQ,)]
         elif self.current_token.token_type == TokenType.OPERATOR_NOT_EQUAL:
             self.eat(TokenType.OPERATOR_NOT_EQUAL)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.NEQ,)]
         elif self.current_token.token_type == TokenType.OPERATOR_LESS:
             self.eat(TokenType.OPERATOR_LESS)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.LESS,)]
         elif self.current_token.token_type == TokenType.OPERATOR_LESS_EQUAL:
             self.eat(TokenType.OPERATOR_LESS_EQUAL)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.LEQ,)]
         elif self.current_token.token_type == TokenType.OPERATOR_GREATER:
             self.eat(TokenType.OPERATOR_GREATER)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.GRET,)]
         elif self.current_token.token_type == TokenType.OPERATOR_GREATER_EQUAL:
             self.eat(TokenType.OPERATOR_GREATER_EQUAL)
-            self.procAdd()
+            right = self.procAdd()
+            return right + [(Command.GEQ,)]
         else:
-            pass
+            return []
 
     def procAdd(self):
         """
             <add> -> <mult> <restoAdd> ;
         """
 
-        self.procMult()
-        self.procRestoAdd()
+        left = self.procMult()
+        right = self.procRestoAdd()
+        if right:
+            return left + right
+        return left
 
     def procRestoAdd(self):
         """
@@ -529,22 +541,27 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_PLUS:
             self.eat(TokenType.OPERATOR_PLUS)
-            self.procMult()
-            self.procRestoAdd()
+            left = self.procMult()
+            right = self.procRestoAdd()
+            return left + right + [(Command.ADD,)]
         elif self.current_token.token_type == TokenType.OPERATOR_MINUS:
             self.eat(TokenType.OPERATOR_MINUS)
-            self.procMult()
-            self.procRestoAdd()
+            left = self.procMult()
+            right = self.procRestoAdd()
+            return left + right + [(Command.SUB,)]
         else:
-            pass
+            return []
 
     def procMult(self):
         """
             <mult> -> <uno> <restoMult> ;
         """
 
-        self.procUno()
-        self.procRestoMult()
+        left = self.procUno()
+        right = self.procRestoMult()
+        if right:
+            return left + right
+        return left
 
     def procRestoMult(self):
         """
@@ -557,22 +574,26 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_MULTIPLY:
             self.eat(TokenType.OPERATOR_MULTIPLY)
-            self.procUno()
-            self.procRestoMult()
+            left = self.procUno()
+            right = self.procRestoMult()
+            return left + right + [(Command.MULT,)]
         elif self.current_token.token_type == TokenType.OPERATOR_DIVIDE:
             self.eat(TokenType.OPERATOR_DIVIDE)
-            self.procUno()
-            self.procRestoMult()
+            left = self.procUno()
+            right = self.procRestoMult()
+            return left + right + [(Command.DIV,)]
         elif self.current_token.token_type == TokenType.OPERATOR_MOD:
             self.eat(TokenType.OPERATOR_MOD)
-            self.procUno()
-            self.procRestoMult()
+            left = self.procUno()
+            right = self.procRestoMult()
+            return left + right + [(Command.MOD,)]
         elif self.current_token.token_type == TokenType.OPERATOR_INTEGER_DIVIDER:
             self.eat(TokenType.OPERATOR_INTEGER_DIVIDER)
-            self.procUno()
-            self.procRestoMult()
+            left = self.procUno()
+            right = self.procRestoMult()
+            return left + right + [(Command.IDIV,)]
         else:
-            pass
+            return []
 
     def procUno(self):
         """
@@ -583,12 +604,12 @@ class Syntatic:
 
         if self.current_token.token_type == TokenType.OPERATOR_PLUS:
             self.eat(TokenType.OPERATOR_PLUS)
-            self.procUno()
+            return self.procUno()
         elif self.current_token.token_type == TokenType.OPERATOR_MINUS:
             self.eat(TokenType.OPERATOR_MINUS)
-            self.procUno()
+            return self.procUno() + [(Command.SUB,)]
         else:
-            self.procFactor()
+            return self.procFactor()
 
     def procFactor(self):
         """
@@ -600,18 +621,31 @@ class Syntatic:
         """
 
         if self.current_token.token_type == TokenType.DECIMAL:
+            value = self.current_token.lexeme
             self.eat(TokenType.DECIMAL)
+            return [("PUSH", value)]
         elif self.current_token.token_type == TokenType.OCTAL:
+            value = self.current_token.lexeme
             self.eat(TokenType.OCTAL)
+            return [("PUSH", value)]
         elif self.current_token.token_type == TokenType.HEXADECIMAL:
+            value = self.current_token.lexeme
             self.eat(TokenType.HEXADECIMAL)
+            return [("PUSH", value)]
         elif self.current_token.token_type == TokenType.FLOAT:
+            value = self.current_token.lexeme
             self.eat(TokenType.FLOAT)
+            return [("PUSH", value)]
         elif self.current_token.token_type == TokenType.VARIABLE:
+            value = self.current_token.lexeme
             self.eat(TokenType.VARIABLE)
+            return [("PUSH", value)]
         elif self.current_token.token_type == TokenType.OPEN_PARENTHESES:
             self.eat(TokenType.OPEN_PARENTHESES)
-            self.procExpr()
+            expr = self.procExpr()
             self.eat(TokenType.CLOSE_PARENTHESES)
+            return expr
         else:
+            value = self.current_token.lexeme
             self.eat(TokenType.STRING)
+            return [("PUSH", value)]
