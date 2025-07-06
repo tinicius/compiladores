@@ -4,15 +4,18 @@ var
   a, b, c: integer;
 
 begin
-  a := 10;
-  b := 3;
 
-  c := a + b;      // ADD
-  c := a - b;      // SUB
-  c := a * b;      // MULT
-  c := a div b;    // IDIV
-  r := a / b;      // DIV
-  c := a mod b;    // MOD
+  a := 1;
+  b := 2;
+  c := 3;
+  
+  if a == 2 and c == 3 then
+    begin
+      writeln("True");
+    end
+  else
+    begin
+      writeln("False");
+    end
 
-  write("Resultado: ", c);
 end.
