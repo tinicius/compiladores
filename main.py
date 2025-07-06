@@ -1,6 +1,7 @@
 import sys
 from lib.lexical.lexical import Lexical
 from lib.syntatic.systatic import Syntatic
+from lib.interpreter.interpreter import Interpreter
 
 
 def main():
@@ -24,6 +25,9 @@ def main():
     for instruction in instructions:
         print(instruction)
 
+    print("\nExecutando programa:")
+    interpreter = Interpreter(instructions)
+    interpreter.run()
 
 if __name__ == "__main__":
     main()
