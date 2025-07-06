@@ -5,8 +5,8 @@ var
   age, nextAge: integer;
 
 begin
-  write("Enter your name: ");
-  readln(name);
+
+  name:= "emanuel";
 
   write("Enter your age: ");
   readln(age);
