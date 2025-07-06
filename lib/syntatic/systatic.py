@@ -13,6 +13,7 @@ class Syntatic:
         
         self.temp_counter = 0  
         self.label_counter = 0
+        self.loop_stack = []
     
     def generate_temp_var(self):
         """Gera uma variável temporária única"""
@@ -51,107 +52,104 @@ class Syntatic:
         return self.procFunction()
 
     def procFunction(self):
-        """
-            <function*> -> 'program' 'IDENT' ';' <declarations> 'begin' <stmtList> 'end' '.' ;
-        """
-
+        """<function*> -> 'program' 'IDENT' ';' <declarations> 'begin' <stmtList> 'end' '.' ;"""
         aux = []
 
         self.eat(TokenType.RESERVED_WORD_PROGRAM)
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.SEMICOLON)
 
-        self.procDeclarations()
+        declare_cmds = self.procDeclarations()
+        aux.extend(declare_cmds)  
 
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
-        aux.extend(self.procStmtList())
+        stmt_cmds = self.procStmtList()
+        aux.extend(stmt_cmds) 
 
         self.eat(TokenType.RESERVED_WORD_END)
         self.eat(TokenType.DOT, next_token=False)
 
         if len(self.tokens) > 0:
-            raise Exception(
-                f"Unexpected tokens after end of program: {self.tokens}")
+            raise Exception(f"Unexpected tokens after end of program: {self.tokens}")
 
         return aux
 
     def procDeclarations(self):
-        """
-            <declarations> -> var <declaration> <restoDeclaration> ;
-        """
-
+        """<declarations> -> var <declaration> <restoDeclaration> ;"""
         self.eat(TokenType.RESERVED_WORD_VAR)
 
-        self.procDeclaration()
-        self.procRestoDeclaration()
+        decl_cmds = self.procDeclaration()          
+        more_cmds = self.procRestoDeclaration()      
+
+        return decl_cmds + more_cmds 
 
     def procDeclaration(self):
-        """
-            <declaration> -> <listaIdent> ':' <type> ';' ;
-        """
-
-        self.procListIdent()
+        """<declaration> -> <listaIdent> ':' <type> ';' ;"""
+        var_list = self.procListIdent() 
         self.eat(TokenType.COLON)
-
-        self.procType()
-
+        var_type = self.procType()      
         self.eat(TokenType.SEMICOLON)
 
-    def procListIdent(self):
-        """
-            <listaIdent> -> 'IDENT' <restoIdentList> ;
-        """
+        commands = []
+        for var_name in var_list:
+            commands.append(('DECLARE', var_name, var_type, None))
 
+        return commands 
+
+    def procListIdent(self):
+        """<listaIdent> -> 'IDENT' <restoIdentList> ;"""
+        var_list = []
+        var_list.append(self.current_token.lexeme) 
         self.eat(TokenType.VARIABLE)
-        self.procRestoListIdent()
+
+        more_vars = self.procRestoListIdent()
+        var_list.extend(more_vars)  
+
+        return var_list
 
     def procRestoListIdent(self):
-        """
-            <restoIdentList> -> ',' 'IDENT' <restoIdentList> | & ;
-        """
-
+        """<restoIdentList> -> ',' 'IDENT' <restoIdentList> | & ;"""
         if self.current_token.token_type == TokenType.COMMA:
             self.eat(TokenType.COMMA)
+            var_name = self.current_token.lexeme  
             self.eat(TokenType.VARIABLE)
-            self.procRestoListIdent()
+            more_vars = self.procRestoListIdent()
+            return [var_name] + more_vars 
         else:
-            pass
+            return []
 
     def procRestoDeclaration(self):
-        """
-            <restoDeclaration> -> <declaration> <restoDeclaration> | & ;
-        """
-
+        """<restoDeclaration> -> <declaration> <restoDeclaration> | & ;"""
         if self.current_token.token_type == TokenType.VARIABLE:
-            self.procDeclaration()
-            self.procRestoDeclaration()
+            decl_cmds = self.procDeclaration()     
+            more_cmds = self.procRestoDeclaration()
+            return decl_cmds + more_cmds            
         else:
-            pass
+            return []
 
     def procType(self):
-        """
-            <type> -> 'integer' | 'real' | 'string' ;
-        """
-
+        """<type> -> 'integer' | 'real' | 'string' ;"""
         if self.current_token.token_type == TokenType.RESERVED_WORD_INTEGER:
             self.eat(TokenType.RESERVED_WORD_INTEGER)
+            return 'integer'  
         elif self.current_token.token_type == TokenType.RESERVED_WORD_REAL:
             self.eat(TokenType.RESERVED_WORD_REAL)
+            return 'real'     
         else:
             self.eat(TokenType.RESERVED_WORD_STRING)
+            return 'string'
 
     def procBloco(self):
-        """
-            <bloco> -> 'begin' <stmtList> 'end' ';' ;
-        """
-
+        """<bloco> -> 'begin' <stmtList> 'end' ';' ;"""
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
-        self.procStmtList()
+        commands = self.procStmtList()  
 
         self.eat(TokenType.RESERVED_WORD_END)
         self.eat(TokenType.SEMICOLON)
+
+        return commands 
 
     def procStmtList(self):
         """
@@ -218,11 +216,11 @@ class Syntatic:
         }
 
         if self.current_token.token_type == TokenType.RESERVED_WORD_FOR:
-            self.procForStmt()
+            return self.procForStmt()
         elif self.current_token.token_type in io:
             return self.procIoStmt()
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WHILE:
-            self.procWhileStmt()
+            return self.procWhileStmt()
         elif self.current_token.token_type == TokenType.VARIABLE:
             cmds = self.procAtrib()
             self.eat(TokenType.SEMICOLON)
@@ -232,50 +230,97 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.RESERVED_WORD_ELSE:
             return self.procElsePart()
         elif self.current_token.token_type == TokenType.RESERVED_WORD_BEGIN:
-            self.procBloco()
+            return self.procBloco() 
         elif self.current_token.token_type == TokenType.RESERVED_WORD_BREAK:
             self.eat(TokenType.RESERVED_WORD_BREAK)
             self.eat(TokenType.SEMICOLON)
-            return [('BREAK', None, None, None)] 
+
+            if not self.loop_stack:
+                raise Exception("BREAK outside of loop")
+
+            current_loop = self.loop_stack[-1]
+            return [('JUMP', current_loop['end'], None, None)]
         elif self.current_token.token_type == TokenType.RESERVED_WORD_CONTINUE:
             self.eat(TokenType.RESERVED_WORD_CONTINUE)
             self.eat(TokenType.SEMICOLON)
-            return [('CONTINUE', None, None, None)]
+
+            if not self.loop_stack:
+                raise Exception("CONTINUE outside of loop")
+
+            current_loop = self.loop_stack[-1]
+            return [('JUMP', current_loop['start'], None, None)]
         else:
             self.eat(TokenType.SEMICOLON)
 
         return []
 
     def procForStmt(self):
-        """
-            <forStmt> -> 'for' <atrib> 'to' <endFor> 'do' <stmt> ;
-        """
-
+        """<forStmt> -> 'for' <atrib> 'to' <endFor> 'do' <stmt> ;"""
         self.eat(TokenType.RESERVED_WORD_FOR)
 
-        self.procAtrib()
+        init_cmds = self.procAtrib()
+        var_name = init_cmds[-1][1] 
 
         self.eat(TokenType.RESERVED_WORD_TO)
 
-        self.procEndFor()
+        end_cmds, end_value = self.procEndFor()
+
+        for_counter = self.generate_label()
+        loop_start = f'FOR_START_{for_counter}'
+        loop_end = f'FOR_END_{for_counter}'
+        
+        self.loop_stack.append({
+            'start': loop_start,
+            'end': loop_end,
+            'type': 'FOR'
+        })
 
         self.eat(TokenType.RESERVED_WORD_DO)
 
-        self.procStmt()
+        body_cmds = self.procStmt()
+        commands = []
+
+        commands.extend(init_cmds)
+
+        commands.append(('LABEL', loop_start, None, None))
+
+        temp_var = self.generate_temp_var()
+        commands.append(('LEQ', temp_var, var_name, end_value))
+        commands.append(('IF', temp_var, 'CONTINUE', loop_end))
+        
+        commands.extend(body_cmds)
+
+        temp_increment = self.generate_temp_var()
+        commands.append(('ADD', temp_increment, var_name, '1'))
+        commands.append(('ATT', var_name, temp_increment, None))
+
+        
+        commands.append(('JUMP', loop_start, None, None))
+
+        commands.append(('LABEL', loop_end, None, None))
+
+        self.loop_stack.pop()
+
+        return commands
 
     def procEndFor(self):
-        """
-            <endFor> -> 'IDENT' | 'NUMint' ;
-        """
-
+        """<endFor> -> 'IDENT' | 'NUMint' ;"""
         if self.current_token.token_type == TokenType.VARIABLE:
+            value = self.current_token.lexeme
             self.eat(TokenType.VARIABLE)
-        if self.current_token.token_type == TokenType.DECIMAL:
+            return [], value 
+        elif self.current_token.token_type == TokenType.DECIMAL:
+            value = self.current_token.lexeme
             self.eat(TokenType.DECIMAL)
-        if self.current_token.token_type == TokenType.OCTAL:
+            return [], f'{value}' 
+        elif self.current_token.token_type == TokenType.OCTAL:
+            value = self.current_token.lexeme
             self.eat(TokenType.OCTAL)
-        else:
+            return [], f'{value}'  
+        else:  # HEXADECIMAL
+            value = self.current_token.lexeme
             self.eat(TokenType.HEXADECIMAL)
+            return [], f'{value}' 
 
     def procIoStmt(self):
         """<ioStmt> -> 'read' '(' 'IDENT' ')' ';' | 'write' '(' <outList> ')' ';' | 'readln' '(' 'IDENT' ')' ';' | 'writeln' '(' <outList> ')' ';' ;"""
@@ -357,14 +402,34 @@ class Syntatic:
         """
             <whileStmt> -> 'while' <expr> 'do' <stmt> ;
         """
-
         self.eat(TokenType.RESERVED_WORD_WHILE)
 
-        self.procExpr()
+        while_counter = self.generate_label()
+        loop_start = f'WHILE_START_{while_counter}'
+        loop_end = f'WHILE_END_{while_counter}'
+        
+        self.loop_stack.append({
+            'start': loop_start,
+            'end': loop_end,
+            'type': 'WHILE'
+        })
+        commands = []
+
+        commands.append(('LABEL', loop_start, None, None))
+        condition_cmds, condition_result = self.procExpr()
+        commands.extend(condition_cmds)
+        commands.append(('IF', condition_result, 'CONTINUE', loop_end))
 
         self.eat(TokenType.RESERVED_WORD_DO)
+        body_cmds = self.procStmt()
+        commands.extend(body_cmds)
+        commands.append(('JUMP', loop_start, None, None))
+        commands.append(('LABEL', loop_end, None, None))
+        
+        self.loop_stack.pop()
+        
+        return commands
 
-        self.procStmt()
         
     def procIfStmt(self):
         """<ifStmt> -> 'if' <expr> 'then' <stmt> <elsePart> ;"""
