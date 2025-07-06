@@ -5,15 +5,14 @@ from lib.syntatic.command import Command
 
 class Syntatic:
     def __init__(self, tokens: list[Token] = []):
-
         self.tokens: list[Token] = tokens
-
-        self.current_token: Token = Token(
-            TokenType.RESERVED_WORD_END, "None", 0, 0)
-        
+        self.current_token: Token = Token(TokenType.RESERVED_WORD_END, "None", 0, 0)
         self.temp_counter = 0  
         self.label_counter = 0
         self.loop_stack = []
+
+        self.symbol_table = {}    
+        self.semantic_errors = [] 
     
     def generate_temp_var(self):
         """Gera uma variável temporária única"""
@@ -24,6 +23,64 @@ class Syntatic:
         """Gera um label único"""  
         self.label_counter += 1
         return f"L{self.label_counter}"
+    
+    def add_variable(self, var_name, var_type):
+        """Adiciona variável na tabela de símbolos"""
+        if var_name in self.symbol_table:
+            self.semantic_errors.append(f"Variable '{var_name}' already declared")
+        else:
+            self.symbol_table[var_name] = var_type
+
+    def check_variable_declared(self, var_name):
+        """Verifica se variável foi declarada"""
+        if var_name not in self.symbol_table:
+            self.semantic_errors.append(f"Variable '{var_name}' not declared")
+            return False
+        return True
+
+    def get_variable_type(self, var_name):
+        """Retorna tipo da variável"""
+        return self.symbol_table.get(var_name, 'unknown')
+    
+    def get_expression_type(self, expression):
+        """Determina o tipo de uma expressão"""
+        if isinstance(expression, str):
+            expression = expression.strip()
+            
+            if expression.startswith("'") and expression.endswith("'"):
+                value = expression[1:-1]
+                if '.' in value:
+                    return 'real'
+                else:
+                    return 'integer'
+            elif expression.startswith('"') and expression.endswith('"'):
+                return 'string'
+            elif expression.startswith('temp_'):
+                return 'integer'  
+            else:
+                var_type = self.get_variable_type(expression)
+                if var_type == 'unknown':
+                    self.semantic_errors.append(f"Variable '{expression}' not declared")
+                return var_type
+        return 'unknown'
+
+    def types_compatible(self, type1, type2):
+        """Verifica se dois tipos são compatíveis"""
+        if type1 == 'unknown' or type2 == 'unknown':
+            return False
+
+        if type1 == type2:
+            return True
+
+        if type1 == 'real' and type2 == 'integer':
+            return True
+        return False
+
+    def print_symbol_table(self):
+        """Imprime a tabela de símbolos para debug"""
+        print("\n=== SYMBOL TABLE ===")
+        for name, var_type in self.symbol_table.items():
+            print(f"{name}: {var_type}")
 
     def advance(self):
         """
@@ -59,13 +116,11 @@ class Syntatic:
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.SEMICOLON)
 
-        declare_cmds = self.procDeclarations()
-        aux.extend(declare_cmds)  
+        self.procDeclarations()
 
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
-        stmt_cmds = self.procStmtList()
-        aux.extend(stmt_cmds) 
+        aux.extend(self.procStmtList())
 
         self.eat(TokenType.RESERVED_WORD_END)
         self.eat(TokenType.DOT, next_token=False)
@@ -79,23 +134,23 @@ class Syntatic:
         """<declarations> -> var <declaration> <restoDeclaration> ;"""
         self.eat(TokenType.RESERVED_WORD_VAR)
 
-        decl_cmds = self.procDeclaration()          
-        more_cmds = self.procRestoDeclaration()      
+        self.procDeclaration()      
+        self.procRestoDeclaration() 
 
-        return decl_cmds + more_cmds 
+        if self.semantic_errors:
+            raise Exception(f"Semantic errors: {self.semantic_errors}") 
 
     def procDeclaration(self):
         """<declaration> -> <listaIdent> ':' <type> ';' ;"""
-        var_list = self.procListIdent() 
+        var_list = self.procListIdent()
         self.eat(TokenType.COLON)
-        var_type = self.procType()      
+        var_type = self.procType()
         self.eat(TokenType.SEMICOLON)
 
-        commands = []
         for var_name in var_list:
-            commands.append(('DECLARE', var_name, var_type, None))
+            self.add_variable(var_name, var_type)
 
-        return commands 
+        return []
 
     def procListIdent(self):
         """<listaIdent> -> 'IDENT' <restoIdentList> ;"""
@@ -122,9 +177,8 @@ class Syntatic:
     def procRestoDeclaration(self):
         """<restoDeclaration> -> <declaration> <restoDeclaration> | & ;"""
         if self.current_token.token_type == TokenType.VARIABLE:
-            decl_cmds = self.procDeclaration()     
-            more_cmds = self.procRestoDeclaration()
-            return decl_cmds + more_cmds            
+            self.procDeclaration()     
+            self.procRestoDeclaration()         
         else:
             return []
 
@@ -143,14 +197,13 @@ class Syntatic:
     def procBloco(self):
         """<bloco> -> 'begin' <stmtList> 'end' ';' ;"""
         self.eat(TokenType.RESERVED_WORD_BEGIN)
-
-        commands = self.procStmtList()  
-
+        commands = self.procStmtList()
         self.eat(TokenType.RESERVED_WORD_END)
-        self.eat(TokenType.SEMICOLON)
-
-        return commands 
-
+     
+        if self.current_token.token_type == TokenType.SEMICOLON:
+            self.eat(TokenType.SEMICOLON)
+        
+        return commands
     def procStmtList(self):
         """
             <stmtList> -> <stmt> <stmtList> | & ;
@@ -312,15 +365,15 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.DECIMAL:
             value = self.current_token.lexeme
             self.eat(TokenType.DECIMAL)
-            return [], f'{value}' 
+            return [], f"'{value}'" 
         elif self.current_token.token_type == TokenType.OCTAL:
             value = self.current_token.lexeme
             self.eat(TokenType.OCTAL)
-            return [], f'{value}'  
+            return [], f"'{value}'" 
         else:  # HEXADECIMAL
             value = self.current_token.lexeme
             self.eat(TokenType.HEXADECIMAL)
-            return [], f'{value}' 
+            return [], f"'{value}'" 
 
     def procIoStmt(self):
         """<ioStmt> -> 'read' '(' 'IDENT' ')' ';' | 'write' '(' <outList> ')' ';' | 'readln' '(' 'IDENT' ')' ';' | 'writeln' '(' <outList> ')' ';' ;"""
@@ -341,7 +394,8 @@ class Syntatic:
             self.eat(TokenType.VARIABLE)
             self.eat(TokenType.CLOSE_PARENTHESES)
             self.eat(TokenType.SEMICOLON)
-            aux.append(('CALL', 'readln', var_name, None))
+            aux.append(('CALL', 'read', var_name, None))  
+            aux.append(('CALL', 'write','\n', None)) 
         elif self.current_token.token_type == TokenType.RESERVED_WORD_WRITE:
             self.eat(TokenType.RESERVED_WORD_WRITE)
             self.eat(TokenType.OPEN_PARENTHESES)
@@ -481,12 +535,23 @@ class Syntatic:
     def procAtrib(self):
         """<atrib> -> 'IDENT' ':=' <expr> ;"""
         var_name = self.current_token.lexeme
+
+        self.check_variable_declared(var_name)
+
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.OPERATOR_ASSIGN)
 
         expr_cmds, expr_result = self.procExpr()
+
+        var_type = self.get_variable_type(var_name)
+        expr_type = self.get_expression_type(expr_result)
+
+
+        if not self.types_compatible(var_type, expr_type):
+            self.semantic_errors.append(f"Type mismatch: cannot assign {expr_type} to {var_type} variable '{var_name}'")
+            raise Exception(f"Type mismatch: cannot assign {expr_type} to {var_type}")
+
         att_cmd = ('ATT', var_name, expr_result, None)
-        
         return expr_cmds + [att_cmd]
 
     def procExpr(self):
@@ -718,19 +783,19 @@ class Syntatic:
         if self.current_token.token_type == TokenType.DECIMAL:
             value = self.current_token.lexeme
             self.eat(TokenType.DECIMAL)
-            return [], f'{value}' 
+            return [], f"'{value}'" 
         elif self.current_token.token_type == TokenType.OCTAL:
             value = self.current_token.lexeme
             self.eat(TokenType.OCTAL)
-            return [], f'{value}'  
+            return [], f"'{value}' " 
         elif self.current_token.token_type == TokenType.HEXADECIMAL:
             value = self.current_token.lexeme
             self.eat(TokenType.HEXADECIMAL)
-            return [], f'{value}' 
+            return [], f"'{value}' "
         elif self.current_token.token_type == TokenType.FLOAT:
             value = self.current_token.lexeme
             self.eat(TokenType.FLOAT)
-            return [], f'{value}'  
+            return [], f"'{value}' " 
         elif self.current_token.token_type == TokenType.VARIABLE:
             value = self.current_token.lexeme
             self.eat(TokenType.VARIABLE)
