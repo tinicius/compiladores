@@ -65,6 +65,7 @@ class Syntatic:
                     self.semantic_errors.append(
                         f"Variable '{expression}' not declared")
                 return var_type
+
         return 'unknown'
 
     def types_compatible(self, type1, type2):
@@ -697,6 +698,13 @@ class Syntatic:
             self.eat(TokenType.OPERATOR_PLUS)
             right_cmds, right_result = self.procMult()
 
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in ADD operation")
+
             temp_var = self.generate_temp_var()
             add_cmd = ('ADD', temp_var, left_result, right_result)
 
@@ -706,6 +714,17 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.OPERATOR_MINUS:
             self.eat(TokenType.OPERATOR_MINUS)
             right_cmds, right_result = self.procMult()
+
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if left_type == 'string' or right_type == 'string':
+                raise TypeError(
+                    f"Cannot perform subtraction on string types")
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in SUB operation")
 
             temp_var = self.generate_temp_var()
             sub_cmd = ('SUB', temp_var, left_result, right_result)
@@ -727,6 +746,17 @@ class Syntatic:
             self.eat(TokenType.OPERATOR_MULTIPLY)
             right_cmds, right_result = self.procUno()
 
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if left_type == 'string' or right_type == 'string':
+                raise TypeError(
+                    f"Cannot perform multiplication on string types")
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in MULT operation")
+
             temp_var = self.generate_temp_var()
             mult_cmd = ('MULT', temp_var, left_result, right_result)
 
@@ -736,6 +766,17 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.OPERATOR_DIVIDE:
             self.eat(TokenType.OPERATOR_DIVIDE)
             right_cmds, right_result = self.procUno()
+
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if left_type == 'string' or right_type == 'string':
+                raise TypeError(
+                    f"Cannot perform division on string types")
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in DIV operation")
 
             temp_var = self.generate_temp_var()
             div_cmd = ('DIV', temp_var, left_result, right_result)
@@ -747,6 +788,17 @@ class Syntatic:
             self.eat(TokenType.OPERATOR_MOD)
             right_cmds, right_result = self.procUno()
 
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if left_type == 'string' or right_type == 'string':
+                raise TypeError(
+                    f"Cannot perform modulo on string types")
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in MOD operation")
+
             temp_var = self.generate_temp_var()
             mod_cmd = ('MOD', temp_var, left_result, right_result)
 
@@ -756,6 +808,17 @@ class Syntatic:
         elif self.current_token.token_type == TokenType.OPERATOR_INTEGER_DIVIDER:
             self.eat(TokenType.OPERATOR_INTEGER_DIVIDER)
             right_cmds, right_result = self.procUno()
+
+            left_type = self.get_expression_type(left_result)
+            right_type = self.get_expression_type(right_result)
+
+            if left_type == 'string' or right_type == 'string':
+                raise TypeError(
+                    f"Cannot perform integer division on string types")
+
+            if not self.types_compatible(left_type, right_type):
+                raise TypeError(
+                    f"Incompatible types: {left_type} and {right_type} in IDIV operation")
 
             temp_var = self.generate_temp_var()
             idiv_cmd = ('IDIV', temp_var, left_result, right_result)

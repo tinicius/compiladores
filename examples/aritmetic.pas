@@ -1,12 +1,21 @@
 program alu;
 
 var
-  i: integer;
+  a, b, c: integer;
 
 begin
 
-  i := 02 + 9.0 + 3.14;
-
-  writeln(i);
+  a := 1;
+  b := 2;
+  c := 3;
+  
+  if a == 2 and c == 3 then
+    begin
+      writeln("True");
+    end
+  else
+    begin
+      writeln("False");
+    end
 
 end.
