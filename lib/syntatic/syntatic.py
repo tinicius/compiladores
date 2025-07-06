@@ -343,9 +343,14 @@ class Syntatic:
 
         commands.append(('LABEL', loop_start, None, None))
 
+        if_counter = self.generate_label()
+        then_label = f'IF_BODY_{if_counter}'
+
         temp_var = self.generate_temp_var()
         commands.append(('LEQ', temp_var, var_name, end_value))
-        commands.append(('IF', temp_var, 'CONTINUE', loop_end))
+        commands.append(('IF', temp_var, then_label, loop_end))
+
+        commands.append(('LABEL', then_label, None, None))
 
         commands.extend(body_cmds)
 
@@ -477,11 +482,12 @@ class Syntatic:
         condition_cmds, condition_result = self.procExpr()
         commands.extend(condition_cmds)
 
-        loop_block_label = self.generate_label()
+        if_counter = self.generate_label()
+        then_label = f'IF_BODY_{if_counter}'
 
-        commands.append(('IF', condition_result, loop_block_label, loop_end))
+        commands.append(('IF', condition_result, then_label, loop_end))
 
-        commands.append(('LABEL', loop_block_label, None, None))
+        commands.append(('LABEL', then_label, None, None))
 
         self.eat(TokenType.RESERVED_WORD_DO)
         body_cmds = self.procStmt()
