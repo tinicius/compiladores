@@ -63,7 +63,7 @@ class Interpreter:
             return '\n'
 
         # Caso contrário, retorna o operando como está
-        return operand
+        return self._try_convert_to_number(operand)
 
     def _execute_instruction(self, instruction):
         """Executa uma instrução individual"""
