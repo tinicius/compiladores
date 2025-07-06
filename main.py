@@ -1,6 +1,6 @@
 import sys
 from lib.lexical.lexical import Lexical
-from lib.syntatic.systatic import Syntatic
+from lib.syntatic.syntatic import Syntatic
 from lib.interpreter.interpreter import Interpreter
 
 
