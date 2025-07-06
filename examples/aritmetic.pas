@@ -5,12 +5,8 @@ var
 
 begin
 
-  i := 0;
+  i := 02 + 9.0 + 3.14;
 
-  while i <= 3 do
-    begin
-      writeln("i: ", i);
-        break;
-    end;
+  writeln(i);
 
 end.

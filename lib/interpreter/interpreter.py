@@ -28,17 +28,18 @@ class Interpreter:
             if instruction[0] == 'LABEL':
                 self.labels[instruction[1]] = i
 
-    def _try_convert_to_number(self, value):
-        try:
-            return int(value)
-        except ValueError:
-            print(
-                f"Valor '{value}' não é um número inteiro, tentando converter para float.")
+    def _try_convert_to_number(self, value: str):
+
+        if "." in str(value):
             try:
                 return float(value)
             except ValueError:
-                print(f"Valor '{value}' não é um número válido.")
                 return value
+
+        try:
+            return int(value)
+        except ValueError:
+            return value
 
     def _get_value(self, operand):
         """Obtém o valor de um operando (variável ou literal)"""
@@ -47,16 +48,7 @@ class Interpreter:
 
         # Se é uma string que representa um número
         if isinstance(operand, str) and operand.startswith("'") and operand.endswith("'"):
-            try:
-                # Tenta converter para inteiro
-                return int(operand[1:-1])
-            except ValueError:
-                try:
-                    # Tenta converter para float
-                    return float(operand[1:-1])
-                except ValueError:
-                    # Se não for um número, retorna a string sem as aspas
-                    return operand[1:-1]
+            return self._try_convert_to_number(operand[1:-1])
 
         # Se é uma string literal com aspas duplas
         elif isinstance(operand, str) and operand.startswith('"') and operand.endswith('"'):
