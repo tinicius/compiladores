@@ -8,17 +8,16 @@ class Interpreter:
 
     def run(self):
         """Executa o programa intermediário"""
-        # Primeiro passo: identificar todas as labels
+        # identificar as labels
         self._map_labels()
 
-        # Segundo passo: executar as instruções
+        # executar as instruções
         self.pc = 0
         while self.pc < len(self.instructions):
             instruction = self.instructions[self.pc]
             self._execute_instruction(instruction)
 
-            # Não incrementamos o pc se a instrução era um jump ou if
-            # pois esses comandos já ajustam o pc diretamente
+            # Não incrementamos o pc se a instrução era um jump ou if pois esses comandos já ajustam o pc diretamente
             if instruction[2] not in ['JUMP', 'IF', 'BREAK', 'CONTINUE']:
                 self.pc += 1
 
