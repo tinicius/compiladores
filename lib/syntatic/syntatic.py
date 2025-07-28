@@ -610,7 +610,7 @@ class Syntatic:
             right_cmds, right_result = self.procAnd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             or_cmd = ('OR', temp_var, left_result, right_result)
 
@@ -632,7 +632,7 @@ class Syntatic:
             right_cmds, right_result = self.procNot()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             and_cmd = ('AND', temp_var, left_result, right_result)
 
@@ -648,7 +648,7 @@ class Syntatic:
             cmds, result = self.procNot()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             not_cmd = ('NOT', temp_var, result, None)
 
@@ -669,7 +669,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             eq_cmd = ('EQ', temp_var, left_result, right_result)
 
@@ -681,7 +681,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             neq_cmd = ('NEQ', temp_var, left_result, right_result)
 
@@ -693,7 +693,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             less_cmd = ('LESS', temp_var, left_result, right_result)
 
@@ -705,7 +705,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             leq_cmd = ('LEQ', temp_var, left_result, right_result)
 
@@ -717,7 +717,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             gret_cmd = ('GRET', temp_var, left_result, right_result)
 
@@ -729,7 +729,7 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
-            self.add_variable(temp_var, 'integer')
+            self.add_variable(temp_var, 'boolean')
 
             geq_cmd = ('GEQ', temp_var, left_result, right_result)
 
