@@ -57,8 +57,6 @@ class Syntatic:
                     return 'integer'
             elif expression.startswith('"') and expression.endswith('"'):
                 return 'string'
-            elif expression.startswith('temp_'):
-                return 'integer'
             else:
                 var_type = self.get_variable_type(expression)
                 if var_type == 'unknown':
@@ -67,6 +65,17 @@ class Syntatic:
                 return var_type
 
         return 'unknown'
+
+    def get_majority_type(self, type1, type2):
+        """Retorna o tipo mais abrangente entre dois tipos"""
+        if type1 == 'string' or type2 == 'string':
+            return 'string'
+        elif type1 == 'real' or type2 == 'real':
+            return 'real'
+        elif type1 == 'integer' or type2 == 'integer':
+            return 'integer'
+        else:
+            return 'unknown'
 
     def types_compatible(self, type1, type2):
         """Verifica se dois tipos são compatíveis"""
@@ -364,6 +373,8 @@ class Syntatic:
         then_label = f'IF_BODY_{if_counter}'
 
         temp_var = self.generate_temp_var()
+        self.add_variable(temp_var, 'integer')
+
         commands.append(('LEQ', temp_var, var_name, end_value))
         commands.append(('IF', temp_var, then_label, loop_end))
 
@@ -372,6 +383,8 @@ class Syntatic:
         commands.extend(body_cmds)
 
         temp_increment = self.generate_temp_var()
+        self.add_variable(temp_increment, 'integer')
+
         commands.append(('ADD', temp_increment, var_name, '1'))
         commands.append(('ATT', var_name, temp_increment, None))
 
@@ -597,6 +610,8 @@ class Syntatic:
             right_cmds, right_result = self.procAnd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             or_cmd = ('OR', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [or_cmd]
@@ -617,6 +632,8 @@ class Syntatic:
             right_cmds, right_result = self.procNot()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             and_cmd = ('AND', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [and_cmd]
@@ -631,6 +648,8 @@ class Syntatic:
             cmds, result = self.procNot()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             not_cmd = ('NOT', temp_var, result, None)
 
             return cmds + [not_cmd], temp_var
@@ -650,6 +669,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             eq_cmd = ('EQ', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [eq_cmd]
@@ -660,6 +681,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             neq_cmd = ('NEQ', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [neq_cmd]
@@ -670,6 +693,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             less_cmd = ('LESS', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [less_cmd]
@@ -680,6 +705,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             leq_cmd = ('LEQ', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [leq_cmd]
@@ -690,6 +717,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             gret_cmd = ('GRET', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [gret_cmd]
@@ -700,6 +729,8 @@ class Syntatic:
             right_cmds, right_result = self.procAdd()
 
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             geq_cmd = ('GEQ', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [geq_cmd]
@@ -727,6 +758,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in ADD operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             add_cmd = ('ADD', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [add_cmd]
@@ -748,6 +782,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in SUB operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             sub_cmd = ('SUB', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [sub_cmd]
@@ -779,6 +816,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in MULT operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             mult_cmd = ('MULT', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [mult_cmd]
@@ -800,6 +840,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in DIV operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             div_cmd = ('DIV', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [div_cmd]
@@ -821,6 +864,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in MOD operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             mod_cmd = ('MOD', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [mod_cmd]
@@ -842,6 +888,9 @@ class Syntatic:
                     f"Incompatible types: {left_type} and {right_type} in IDIV operation")
 
             temp_var = self.generate_temp_var()
+            self.add_variable(
+                temp_var, self.get_majority_type(left_type, right_type))
+
             idiv_cmd = ('IDIV', temp_var, left_result, right_result)
 
             all_cmds = left_cmds + right_cmds + [idiv_cmd]
@@ -860,6 +909,8 @@ class Syntatic:
 
             # Para -numero, fazemos SUB(temp, 0, numero)
             temp_var = self.generate_temp_var()
+            self.add_variable(temp_var, 'integer')
+
             sub_cmd = ('SUB', temp_var, '0', result)
 
             return cmds + [sub_cmd], temp_var
