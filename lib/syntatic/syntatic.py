@@ -110,7 +110,12 @@ class Syntatic:
     def start(self):
         self.advance()
 
-        return self.procFunction()
+        cmds = self.procFunction()
+
+        if self.semantic_errors:
+            raise Exception(self.semantic_errors[0])
+
+        return cmds
 
     def procFunction(self):
         """<function*> -> 'program' 'IDENT' ';' <declarations> 'begin' <stmtList> 'end' '.' ;"""
@@ -120,7 +125,7 @@ class Syntatic:
         self.eat(TokenType.VARIABLE)
         self.eat(TokenType.SEMICOLON)
 
-        self.procDeclarations()
+        aux.extend(self.procDeclarations())
 
         self.eat(TokenType.RESERVED_WORD_BEGIN)
 
@@ -139,11 +144,12 @@ class Syntatic:
         """<declarations> -> var <declaration> <restoDeclaration> ;"""
         self.eat(TokenType.RESERVED_WORD_VAR)
 
-        self.procDeclaration()
-        self.procRestoDeclaration()
+        aux = []
 
-        if self.semantic_errors:
-            raise Exception(f"Semantic errors: {self.semantic_errors}")
+        aux.extend(self.procDeclaration())
+        aux.extend(self.procRestoDeclaration())
+
+        return aux
 
     def procDeclaration(self):
         """<declaration> -> <listaIdent> ':' <type> ';' ;"""
@@ -152,10 +158,19 @@ class Syntatic:
         var_type = self.procType()
         self.eat(TokenType.SEMICOLON)
 
+        cmds = []
+
         for var_name in var_list:
             self.add_variable(var_name, var_type)
 
-        return []
+            if var_type == 'string':
+                cmds.append(('ATT', var_name, '""', None))
+            elif var_type == 'integer':
+                cmds.append(('ATT', var_name, '0', None))
+            elif var_type == 'real':
+                cmds.append(('ATT', var_name, '0.0', None))
+
+        return cmds
 
     def procListIdent(self):
         """<listaIdent> -> 'IDENT' <restoIdentList> ;"""
@@ -182,8 +197,10 @@ class Syntatic:
     def procRestoDeclaration(self):
         """<restoDeclaration> -> <declaration> <restoDeclaration> | & ;"""
         if self.current_token.token_type == TokenType.VARIABLE:
-            self.procDeclaration()
-            self.procRestoDeclaration()
+            aux = []
+            aux.extend(self.procDeclaration())
+            aux.extend(self.procRestoDeclaration())
+            return aux
         else:
             return []
 
@@ -559,8 +576,6 @@ class Syntatic:
         if not self.types_compatible(var_type, expr_type):
             self.semantic_errors.append(
                 f"Type mismatch: cannot assign {expr_type} to {var_type} variable '{var_name}'")
-            raise Exception(
-                f"Type mismatch: cannot assign {expr_type} to {var_type}")
 
         att_cmd = ('ATT', var_name, expr_result, None)
         return expr_cmds + [att_cmd]
