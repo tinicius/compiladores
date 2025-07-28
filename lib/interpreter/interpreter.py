@@ -29,6 +29,21 @@ class Interpreter:
 
     def _try_convert_to_number(self, value: str):
 
+        value = str(value)
+
+        if len(value) > 2 and value[:2] == '0x':
+            # Verifica se é um número hexadecimal
+            try:
+                return int(value, 16)
+            except ValueError:
+                return value
+        elif len(value) > 0 and value[0] == '0':
+            # Verifica se é um número octal
+            try:
+                return int(value, 8)
+            except ValueError:
+                return value
+
         if "." in str(value):
             try:
                 return float(value)
@@ -110,10 +125,6 @@ class Interpreter:
                 self._execute_and(instruction)
             elif cmd == 'NOT':
                 self._execute_not(instruction)
-            elif cmd == 'BREAK':
-                self._execute_break(instruction)
-            elif cmd == 'CONTINUE':
-                self._execute_continue(instruction)
             else:
                 print(f"Comando desconhecido: {cmd}")
         except Exception as e:
@@ -151,24 +162,6 @@ class Interpreter:
     def _execute_jump(self, instruction):
         """Salto: ('JUMP', LABEL, NONE, NONE)"""
         self.pc = self.labels[instruction[1]]
-
-    def _execute_break(self, instruction):
-        """Break: ('BREAK', None, None, None)"""
-        if not self.loop_stack:
-            raise RuntimeError("Instrução BREAK fora de um loop")
-
-        # Salta para o fim do loop atual
-        end_label = self.loop_stack[-1][1]
-        self.pc = self.labels[end_label]
-
-    def _execute_continue(self, instruction):
-        """Continue: ('CONTINUE', None, None, None)"""
-        if not self.loop_stack:
-            raise RuntimeError("Instrução CONTINUE fora de um loop")
-
-        # Salta para o início do loop atual
-        start_label = self.loop_stack[-1][0]
-        self.pc = self.labels[start_label]
 
     def _execute_eq(self, instruction):
         """Igualdade: ('EQ', SALVO, OP1, OP2)"""
